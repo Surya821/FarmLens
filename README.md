@@ -4,7 +4,7 @@
 
 <div align="center">
 
-# 🐄 FARMLENS BY SURYA
+# 🐄 FARMLENS
 *A Cattle Breed Recognition App Using Machine Learning & Image Uploads*
 
 ![last-commit](https://img.shields.io/github/last-commit/Surya821/FarmLens?style=flat&logo=git&logoColor=white&color=228B22)
