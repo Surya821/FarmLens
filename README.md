@@ -49,7 +49,6 @@
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
 - [Getting Started](#-getting-started)
-- [Environment Variables](#-environment-variables)
 - [Usage](#-usage)
 - [Future Enhancements](#-future-enhancements)
 - [Contact](#-contact)
