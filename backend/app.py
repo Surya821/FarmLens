@@ -2,34 +2,48 @@ import os
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware  # ADD THIS
+from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import torch
 from torchvision import models, transforms
+import requests  # Added to download model
 
 # -----------------------------
-# Paths
+# Paths and model URL
 # -----------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(BASE_DIR, "../frontend")
 CHECKPOINT_PATH = os.path.join(BASE_DIR, "best_resnet.pth")
+
+# Google Drive direct download link
+MODEL_URL = "https://drive.google.com/uc?export=download&id=1QWtoDvIjHqDV_eRcu16zrLhoisY_w9cB"
 
 # -----------------------------
 # FastAPI app
 # -----------------------------
 app = FastAPI(title="Cattle Breed Recognition")
 
-# ADD CORS MIDDLEWARE - IMPORTANT!
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+# -----------------------------
+# Download model if not exists
+# -----------------------------
+if not os.path.exists(CHECKPOINT_PATH):
+    print("Downloading model from Google Drive...")
+    r = requests.get(MODEL_URL)
+    with open(CHECKPOINT_PATH, "wb") as f:
+        f.write(r.content)
+    print("Model downloaded successfully!")
 
 # -----------------------------
 # Load model
@@ -41,7 +55,6 @@ num_ftrs = model.fc.in_features
 num_classes = 5
 model.fc = torch.nn.Linear(num_ftrs, num_classes)
 
-# Load checkpoint
 model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=device))
 model = model.to(device)
 model.eval()
@@ -56,7 +69,7 @@ transform = transforms.Compose([
 ])
 
 # -----------------------------
-# Classes names 
+# Class names
 # -----------------------------
 CLASS_NAMES = [
     "Ayrshire cattle", 
@@ -77,12 +90,9 @@ async def index():
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     try:
-        # Open image
         image = Image.open(file.file).convert("RGB")
-        # Apply transforms
         image = transform(image).unsqueeze(0).to(device)
 
-        # Predict
         with torch.no_grad():
             outputs = model(image)
             _, predicted = torch.max(outputs, 1)
