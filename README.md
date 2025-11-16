@@ -29,15 +29,17 @@
 
 ### 🖥️ Desktop View
 
-| Home | Breed Info | Predict |
-|:--:|:--:|:--:|
-| ![Home](screenshots/home-desktop.png) | ![Breed Info](screenshots/breedinfo-desktop.png) | ![Predict](screenshots/predict-desktop.png) |
+| Home | Breed Info | Predict | Breed Info Card
+|:--:|:--:|
+| ![Home](screenshots/home-desktop.png) | ![Predict](screenshots/predict-desktop.png) |
+| ![Breed Info](screenshots/breedinfo-desktop.png) | ![Breed Info Card](screenshots/breedinfocard-desktop.png) |
 
 ### 📱 Mobile View
 
-| Home | Breed Info | Predict |
-|:--:|:--:|:--:|
-| ![Home](screenshots/home-mobile.png) | ![Breed Info](screenshots/breedinfo-mobile.png) | ![Predict](screenshots/predict-mobile.png) |
+| Home | Breed Info | Predict | Breed Info Card
+|:--:|:--:|
+| ![Home](screenshots/home-mobile.png) | ![Predict](screenshots/predict-mobile.png) |
+| ![Breed Info](screenshots/breedinfo-mobile.png) | ![Breed Info Card](screenshots/breedinfocard-mobile.png) |
 
 ---
 
