@@ -1,7 +1,8 @@
-pip>=25.3
+pip>=23.2
 fastapi==0.101.0
 uvicorn[standard]==0.23.2
 torch==2.5.0
 torchvision==0.21.0
 pillow==10.1.0
 requests==2.31.0
+gdown==4.7.1   # if you want to download model from Google Drive
