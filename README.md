@@ -1,4 +1,4 @@
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/f32d3f1f-049b-4f7d-8836-a50f35255a58" />
+<img width="1920" height="1080" alt="Home Desktop" src="screenshots/home-desktop.png" />
 
 <div id="top"></div>
 
