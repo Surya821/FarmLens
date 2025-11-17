@@ -9,6 +9,9 @@ function PredictPage({ isDark, language, setSelectedBreed, prediction, setPredic
   const navigate = useNavigate();
   const t = translations[language];
 
+  // Use environment variable for API URL
+  const API_URL = import.meta.env.VITE_API_URL || 'https://farmlens-backend.onrender.com';
+
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -27,7 +30,7 @@ function PredictPage({ isDark, language, setSelectedBreed, prediction, setPredic
     formData.append('file', selectedFile);
 
     try {
-      const response = await fetch('http://localhost:8000/predict', {
+      const response = await fetch(`${API_URL}/predict`, {
         method: 'POST',
         body: formData
       });
@@ -35,7 +38,7 @@ function PredictPage({ isDark, language, setSelectedBreed, prediction, setPredic
       setPrediction(data.predicted_class);
     } catch (error) {
       console.error('Error:', error);
-      alert('Error predicting breed. Make sure the backend is running.');
+      alert('Error predicting breed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -97,32 +100,30 @@ function PredictPage({ isDark, language, setSelectedBreed, prediction, setPredic
 
         {prediction && (
           <div
-          className={`rounded-lg p-8 shadow-lg ${
-            isDark ? "bg-gray-800" : "bg-white"
-          } flex flex-col items-center text-center`}
-        >
-          <h3
-            className={`text-2xl font-bold mb-4 ${
-              isDark ? "text-green-400" : "text-green-600"
-            }`}
+            className={`rounded-lg p-8 shadow-lg ${
+              isDark ? "bg-gray-800" : "bg-white"
+            } flex flex-col items-center text-center`}
           >
-            {language === "en" ? "Predicted Breed:" : "भविष्यवाणी की गई नस्ल:"}
-          </h3>
-        
-          <p
-            className={`text-xl mb-6 ${
-              isDark ? "text-white" : "text-gray-800"
-            }`}
-          >
-            {prediction}
-          </p>
-        
-          <button
-            onClick={handleLearnMore}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
-            {language === "en" ? "Learn More" : "और जानें"}
-        
+            <h3
+              className={`text-2xl font-bold mb-4 ${
+                isDark ? "text-green-400" : "text-green-600"
+              }`}
+            >
+              {language === "en" ? "Predicted Breed:" : "भविष्यवाणी की गई नस्ल:"}
+            </h3>
+          
+            <p
+              className={`text-xl mb-6 ${
+                isDark ? "text-white" : "text-gray-800"
+              }`}
+            >
+              {prediction}
+            </p>
+          
+            <button
+              onClick={handleLearnMore}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
               {t.learnMore}
             </button>
           </div>
