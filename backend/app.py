@@ -6,17 +6,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import torch
 from torchvision import models, transforms
-import gdown  # ADD THIS IMPORT
+import sys
 
 # -----------------------------
-# Paths and model URL
+# Paths
 # -----------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(BASE_DIR, "../frontend")
 CHECKPOINT_PATH = os.path.join(BASE_DIR, "best_resnet.pth")
-
-# Google Drive direct download link (file ID: 1QWtoDvIjHqDV_eRcu16zrLhoisY_w9cB)
-MODEL_URL = "https://drive.google.com/uc?id=1QWtoDvIjHqDV_eRcu16zrLhoisY_w9cB"
 
 # -----------------------------
 # FastAPI app
@@ -36,26 +33,37 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 # -----------------------------
-# Download model if not exists
+# Verify model file exists
 # -----------------------------
 if not os.path.exists(CHECKPOINT_PATH):
-    print("Downloading model from Google Drive...")
-    gdown.download(MODEL_URL, CHECKPOINT_PATH, quiet=False)
-    print("Model downloaded successfully!")
+    print(f"ERROR: Model file not found at {CHECKPOINT_PATH}")
+    print("Please ensure best_resnet.pth is in the backend directory")
+    sys.exit(1)
+
+print(f"✓ Model file found at: {CHECKPOINT_PATH}")
+print(f"✓ Model file size: {os.path.getsize(CHECKPOINT_PATH) / (1024*1024):.2f} MB")
 
 # -----------------------------
 # Load model
 # -----------------------------
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = models.resnet50(weights=None)  # pretrained=False deprecated
+print(f"✓ Using device: {device}")
+
+model = models.resnet50(weights=None)
 num_ftrs = model.fc.in_features
 num_classes = 5
 model.fc = torch.nn.Linear(num_ftrs, num_classes)
 
 # Load checkpoint
-model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=device))
-model = model.to(device)
-model.eval()
+print(f"Loading model from {CHECKPOINT_PATH}...")
+try:
+    model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=device))
+    model = model.to(device)
+    model.eval()
+    print("✓ Model loaded successfully!")
+except Exception as e:
+    print(f"ERROR loading model: {e}")
+    sys.exit(1)
 
 # -----------------------------
 # Define transforms
@@ -106,3 +114,12 @@ async def predict(file: UploadFile = File(...)):
         })
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.get("/health")
+async def health_check():
+    return JSONResponse({
+        "status": "healthy",
+        "model_loaded": model is not None,
+        "device": str(device)
+    })

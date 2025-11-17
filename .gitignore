@@ -19,9 +19,9 @@ ENV/
 dist/
 build/
 
-# PyTorch model files (optional, if you don't want to commit large models)
-*.pth
-*.pt
+# PyTorch model files (commented out to allow best_resnet.pth)
+# *.pth
+# *.pt
 
 # IDEs
 .vscode/
