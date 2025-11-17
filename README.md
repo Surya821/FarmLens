@@ -76,7 +76,7 @@ It uses a **Vite + React frontend** and a **FastAPI backend (`app.py`)** to serv
 ✅ FastAPI backend for serving predictions  
 ✅ Vite + React frontend for smooth UI  
 ✅ Fully responsive design – Desktop & Mobile 
-✅ Theme switch (Light/Dark mode)  
+✅ Theme switch (Light/Dark mode)
 ✅ Language switch (Hindi / English)    
 
 
