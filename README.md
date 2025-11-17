@@ -75,9 +75,9 @@ It uses a **Vite + React frontend** and a **FastAPI backend (`app.py`)** to serv
 ✅ PyTorch model trained on 1000+ images  
 ✅ FastAPI backend for serving predictions  
 ✅ Vite + React frontend for smooth UI  
-✅ Fully responsive design – Desktop & Mobile 
-✅ Theme switch (Light/Dark mode)
-✅ Language switch (Hindi / English)    
+✅ Fully responsive design – Desktop & Mobile  
+✅ Theme switch (Light/Dark mode)  
+✅ Language switch (Hindi / English)  
 
 
 ---
