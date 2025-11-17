@@ -186,7 +186,7 @@ uvicorn app:py --reload
 
 **Created by — Surya Pratap Singh**  
 📩 **Contact Me:**  
-[LinkedIn](https://www.linkedin.com/in/surya-pratap-singh1/) • [Gmail](mailto:surya30082005@gmail.com)
+[LinkedIn](https://www.linkedin.com/in/surya-pratap-singh1/) • [Gmail](mailto:surya30082005@gmail.com) surya30082005@gmail.com
 
 If you like this project, consider giving it a ⭐ on GitHub!
 
