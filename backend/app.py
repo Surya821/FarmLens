@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import torch
 from torchvision import models, transforms
+import gdown  # ADD THIS IMPORT
 
 # -----------------------------
 # Paths and model URL
