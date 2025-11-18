@@ -97,7 +97,8 @@ It uses a **Vite + React frontend** and a **FastAPI backend (`app.py`)** to serv
 - Pillow (Image Processing)
 
 ### **Deployment:**
-- Vercel / Any Python-friendly hosting for backend
+- Render.com (Backend)
+- Vercel.com (Frontend)  
 
 ---
 
