@@ -57,14 +57,14 @@
 
 ## 🧐 Overview
 
-**FarmLens** is a cattle breed recognition app powered by a **PyTorch model trained on 1000+ images**. Users can explore detailed information on **58 cattle breeds** and predict the breed of any cattle from an uploaded image.  
+**FarmLens** is a cattle breed recognition app powered by a **PyTorch model trained on 1000+ images**. Users can explore detailed information on **57 cattle breeds** and predict the breed of any cattle from an uploaded image.  
 It uses a **Vite + React frontend** and a **FastAPI backend (`app.py`)** to serve predictions and breed data.
 
 ---
 
 ## 🔗 Demo
 
-> Live Preview: https://github.com/Surya821/FarmLens  *(replace with live deployment if available)*
+> Live Preview: https://farmlens.vercel.app
 
 ---
 
@@ -75,9 +75,9 @@ It uses a **Vite + React frontend** and a **FastAPI backend (`app.py`)** to serv
 ✅ PyTorch model trained on 1000+ images  
 ✅ FastAPI backend for serving predictions  
 ✅ Vite + React frontend for smooth UI  
-✅ Fully responsive design – Desktop & Mobile 
+✅ Fully responsive design – Desktop & Mobile  
 ✅ Theme switch (Light/Dark mode)  
-✅ Language switch (Hindi / English)    
+✅ Language switch (Hindi / English)  
 
 
 ---
@@ -97,7 +97,8 @@ It uses a **Vite + React frontend** and a **FastAPI backend (`app.py`)** to serv
 - Pillow (Image Processing)
 
 ### **Deployment:**
-- Vercel / Any Python-friendly hosting for backend
+- Render.com (Backend)
+- Vercel.com (Frontend)  
 
 ---
 
@@ -186,7 +187,7 @@ uvicorn app:py --reload
 
 **Created by — Surya Pratap Singh**  
 📩 **Contact Me:**  
-[LinkedIn](https://www.linkedin.com/in/surya-pratap-singh1/) • [Gmail](mailto:surya30082005@gmail.com)
+[LinkedIn](https://www.linkedin.com/in/surya-pratap-singh1/) • [Gmail](mailto:surya30082005@gmail.com) surya30082005@gmail.com
 
 If you like this project, consider giving it a ⭐ on GitHub!
 
