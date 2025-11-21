@@ -1,8 +1,15 @@
 fastapi==0.115.0
 uvicorn[standard]==0.32.0
+
+# PyTorch (CPU version for Render)
 torch==2.3.1
 torchvision==0.18.1
+
 pillow==10.4.0
 python-multipart==0.0.12
-joblib==1.4.2
+
+# Machine Learning
 pandas==2.2.2
+numpy==1.26.4
+scikit-learn==1.5.1
+joblib==1.4.2
