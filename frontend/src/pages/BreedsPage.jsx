@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { translations } from '../data/translations';
 import { breedData } from '../data/breedData';
 import BreedCard from '../components/BreedCard';
+import BreedWorldMap from '../components/BreedWorldMap';
 
 function BreedsPage({ isDark, language, setSelectedBreed }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,6 +50,8 @@ function BreedsPage({ isDark, language, setSelectedBreed }) {
             />
           </div>
         </div>
+
+        <BreedWorldMap isDark={isDark} language={language} />
 
         <div className="mb-8">
           <p className={`text-lg mb-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>

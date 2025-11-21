@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { translations } from '../data/translations';
 
-function PredictPage({ isDark, language, setSelectedBreed, prediction, setPrediction }) {
+function PredictPage({ isDark, language, setSelectedBreed, prediction, setPrediction}) {
   const [uploadedImage, setUploadedImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);

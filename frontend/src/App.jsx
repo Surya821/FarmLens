@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import BreedsPage from './pages/BreedsPage';
 import PredictPage from './pages/PredictPage';
+import DiseasePredictPage from './pages/DiseasePredictPage';
 import BreedInfoPage from './pages/BreedInfoPage';
 
 function App() {
@@ -56,6 +57,16 @@ function App() {
                   setSelectedBreed={setSelectedBreed}
                   prediction={prediction}
                   setPrediction={setPrediction}
+                />
+              } 
+            />
+            
+            <Route 
+              path="/disease" 
+              element={
+                <DiseasePredictPage
+                  isDark={isDark}
+                  language={language}
                 />
               } 
             />

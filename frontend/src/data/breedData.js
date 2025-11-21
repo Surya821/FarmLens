@@ -57,7 +57,7 @@ import img56 from '../assets/images/56.webp';
 import img57 from '../assets/images/57.webp';
 
 export const breedData = {
-  "Ayrshire": {
+  "Ayrshire cattle": {
     image: img1,
     description: {
       en: "Ayrshire cattle are a breed of dairy cattle originating from Ayrshire in Scotland. They are known for their hardiness and ability to convert grass into milk efficiently.",
@@ -71,7 +71,7 @@ export const breedData = {
     weight: { en: "450-600 kg", hi: "450-600 किलो" },
     milkProduction: { en: "7,000-9,000 kg per lactation", hi: "प्रति स्तनपान 7,000-9,000 किलो" }
   },
-  "Brown Swiss": {
+  "Brown Swiss cattle": {
     image: img2,
     description: {
       en: "Brown Swiss cattle are one of the oldest dairy breeds, originating from Switzerland. They are known for their longevity, strength, and high milk production with excellent protein content.",
@@ -85,7 +85,7 @@ export const breedData = {
     weight: { en: "600-700 kg", hi: "600-700 किलो" },
     milkProduction: { en: "8,000-10,000 kg per lactation", hi: "प्रति स्तनपान 8,000-10,000 किलो" }
   },
-  "Holstein Friesian": {
+  "Holstein Friesian cattle": {
     image: img3,
     description: {
       en: "Holstein Friesian cattle are the world's highest-production dairy animals. Originating from the Netherlands, they are recognized by their distinctive black and white markings.",
@@ -99,7 +99,7 @@ export const breedData = {
     weight: { en: "650-750 kg", hi: "650-750 किलो" },
     milkProduction: { en: "9,000-12,000 kg per lactation", hi: "प्रति स्तनपान 9,000-12,000 किलो" }
   },
-  "Jersey": {
+  "Jersey cattle": {
     image: img4,
     description: {
       en: "Jersey cattle are a small breed of dairy cattle from Jersey in the Channel Islands. They produce milk with high butterfat content and are well-suited to diverse climates.",
@@ -113,7 +113,7 @@ export const breedData = {
     weight: { en: "400-500 kg", hi: "400-500 किलो" },
     milkProduction: { en: "5,500-7,500 kg per lactation", hi: "प्रति स्तनपान 5,500-7,500 किलो" }
   },
-  "Red Dane": {
+  "Red Dane cattle": {
     image: img5,
     description: {
       en: "Red Dane cattle, also known as Danish Red, are a dairy breed from Denmark. They are known for their robust health, fertility, and good milk production with balanced composition.",
