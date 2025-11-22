@@ -4,6 +4,7 @@ import { translations } from '../data/translations';
 import { breedData } from '../data/breedData';
 import BreedCard from '../components/BreedCard';
 import BreedWorldMap from '../components/BreedWorldMap';
+import logo from "../assets/logo.svg";
 
 function HomePage({ isDark, language, setSelectedBreed }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -57,9 +58,11 @@ function HomePage({ isDark, language, setSelectedBreed }) {
             {/* Logo/Icon */}
             <div className="mb-6 flex justify-center">
               <div className={`p-4 rounded-full ${isDark ? 'bg-green-800/50' : 'bg-green-100'} inline-block`}>
-                <svg className={`w-16 h-16 ${isDark ? 'text-green-400' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
+                <img 
+                src={logo} 
+                alt="FarmLens Logo"
+                className="w-16 h-16"
+                />
               </div>
             </div>
 
