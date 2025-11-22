@@ -24,10 +24,12 @@ function CattleInfoPage({ isDark, language }) {
     fetchCattle();
   }, [user, username, cattleId]);
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://farmlens-backend-node.onrender.com';
+
   const fetchCattle = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/cattle/my-cattle`, {
+      const response = await fetch(`${API_BASE}/api/cattle/my-cattle`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -75,7 +77,7 @@ function CattleInfoPage({ isDark, language }) {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/cattle/${cattleId}`, {
+      const response = await fetch(`${API_BASE}/api/cattle/${cattleId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -105,7 +107,7 @@ function CattleInfoPage({ isDark, language }) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/cattle/${cattleId}`, {
+      const response = await fetch(`${API_BASE}/api/cattle/${cattleId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

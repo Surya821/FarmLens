@@ -22,6 +22,9 @@ function AddCattlePage({ isDark, language }) {
   const { username } = useParams();
   const { user } = useAuth();
 
+  // Use environment variable or fallback to Render URL
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://farmlens-backend-node.onrender.com';
+
   useEffect(() => {
     if (!user || user.username !== username) {
       navigate('/login');
@@ -55,7 +58,7 @@ function AddCattlePage({ isDark, language }) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/cattle', {
+      const response = await fetch(`${API_BASE}/api/cattle`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

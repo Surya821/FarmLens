@@ -14,6 +14,8 @@ function UserDashboard({ isDark, language }) {
   const { username } = useParams();
   const { user } = useAuth();
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://farmlens-backend-node.onrender.com';
+
   useEffect(() => {
     if (user && user.username === username) {
       fetchCattle();
@@ -26,7 +28,7 @@ function UserDashboard({ isDark, language }) {
   const fetchCattle = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/cattle/my-cattle', {
+      const response = await fetch(`${API_BASE}/api/cattle/my-cattle`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -45,7 +47,7 @@ function UserDashboard({ isDark, language }) {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/cattle/stats', {
+      const response = await fetch(`${API_BASE}/api/cattle/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -67,7 +69,7 @@ function UserDashboard({ isDark, language }) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/cattle/${cattleId}`, {
+      const response = await fetch(`${API_BASE}/api/cattle/${cattleId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

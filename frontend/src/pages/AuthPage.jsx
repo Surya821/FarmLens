@@ -18,6 +18,9 @@ function AuthPage({ isDark, language }) {
   const location = useLocation();
   const { login } = useAuth();
 
+  // Use environment variable or fallback to Render URL
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://farmlens-backend-node.onrender.com';
+
   // Set initial mode based on route
   React.useEffect(() => {
     if (location.pathname === '/register') {
@@ -42,7 +45,7 @@ function AuthPage({ isDark, language }) {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/auth/send-otp', {
+      const response = await fetch(`${API_BASE}/api/auth/send-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +71,7 @@ function AuthPage({ isDark, language }) {
 
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
+      const response = await fetch(`${API_BASE}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -17,6 +17,8 @@ function ProfilePage({ isDark, language }) {
   const { username } = useParams();
   const { user, updateUser } = useAuth();
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://farmlens-backend-node.onrender.com';
+
   useEffect(() => {
     if (!user || user.username !== username) {
       navigate('/login');
@@ -58,7 +60,7 @@ function ProfilePage({ isDark, language }) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/user/profile', {
+      const response = await fetch(`${API_BASE}/api/user/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +85,7 @@ function ProfilePage({ isDark, language }) {
   const updateAvatar = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/user/avatar', {
+      const response = await fetch(`${API_BASE}/api/user/avatar`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
