@@ -7,6 +7,7 @@ import BreedWorldMap from '../components/BreedWorldMap';
 
 function HomePage({ isDark, language, setSelectedBreed }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const navigate = useNavigate();
   const t = translations[language];
   const breeds = Object.keys(breedData);
@@ -15,13 +16,36 @@ function HomePage({ isDark, language, setSelectedBreed }) {
     breed.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Show only first 6 breeds on home page
-  const displayedBreeds = filteredBreeds.slice(0, 6);
-  const hasMoreBreeds = filteredBreeds.length > 6;
+  // Always show first 6 breeds on home page (static)
+  const displayedBreeds = breeds.slice(0, 6);
+  const hasMoreBreeds = breeds.length > 6;
 
   const handleBreedClick = (breed) => {
+    console.log('Navigating to breed:', breed);
     setSelectedBreed(breed);
+    // Navigate to breed info page with properly encoded URL
     navigate(`/breed/${encodeURIComponent(breed)}`);
+  };
+
+  const handleSuggestionClick = (breed) => {
+    console.log('Suggestion clicked:', breed);
+    // Clear search and hide dropdown
+    setSearchQuery('');
+    setShowSuggestions(false);
+    // Navigate to the breed page
+    handleBreedClick(breed);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setShowSuggestions(e.target.value.length > 0);
+  };
+
+  // Helper function to get origin text
+  const getOriginText = (breed) => {
+    const origin = breedData[breed]?.origin;
+    if (!origin) return '';
+    return typeof origin === 'object' ? origin[language] || origin.en : origin;
   };
 
   return (
@@ -55,7 +79,8 @@ function HomePage({ isDark, language, setSelectedBreed }) {
                   type="text"
                   placeholder={t.searchPlaceholder}
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={handleSearchChange}
+                  onFocus={() => searchQuery && setShowSuggestions(true)}
                   className={`w-full px-6 py-5 rounded-2xl border-2 text-lg shadow-lg ${
                     isDark
                       ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-green-500'
@@ -65,6 +90,68 @@ function HomePage({ isDark, language, setSelectedBreed }) {
                 <svg className={`absolute right-5 top-1/2 transform -translate-y-1/2 w-6 h-6 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
+                
+                {/* Suggestions Dropdown */}
+                {showSuggestions && filteredBreeds.length > 0 && (
+                  <div className={`absolute z-10 w-full mt-2 rounded-xl shadow-2xl border-2 max-h-96 overflow-y-auto ${
+                    isDark 
+                      ? 'bg-gray-800 border-gray-700' 
+                      : 'bg-white border-gray-200'
+                  }`}>
+                    {filteredBreeds.slice(0, 10).map((breed, index) => {
+                      const originText = getOriginText(breed);
+                      return (
+                        <div
+                          key={breed}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleSuggestionClick(breed);
+                          }}
+                          className={`px-6 py-4 cursor-pointer transition-all duration-200 ${
+                            index !== 0 ? (isDark ? 'border-t border-gray-700' : 'border-t border-gray-100') : ''
+                          } ${
+                            isDark 
+                              ? 'hover:bg-gray-700 text-white' 
+                              : 'hover:bg-gray-50 text-gray-800'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <svg className={`w-5 h-5 flex-shrink-0 ${isDark ? 'text-green-400' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <span className="font-medium">{breed}</span>
+                          </div>
+                          {originText && (
+                            <div className={`text-sm mt-1 ml-8 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                              {originText}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {filteredBreeds.length > 10 && (
+                      <div className={`px-6 py-3 text-center text-sm ${isDark ? 'text-gray-500 border-t border-gray-700' : 'text-gray-400 border-t border-gray-100'}`}>
+                        {filteredBreeds.length - 10} {language === 'en' ? 'more breeds...' : 'और नस्लें...'}
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {/* No Results Message */}
+                {showSuggestions && searchQuery && filteredBreeds.length === 0 && (
+                  <div className={`absolute z-10 w-full mt-2 rounded-xl shadow-2xl border-2 px-6 py-4 ${
+                    isDark 
+                      ? 'bg-gray-800 border-gray-700 text-gray-400' 
+                      : 'bg-white border-gray-200 text-gray-600'
+                  }`}>
+                    <div className="flex items-center gap-3">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>{language === 'en' ? 'No breeds found' : 'कोई नस्ल नहीं मिली'}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -173,48 +260,35 @@ function HomePage({ isDark, language, setSelectedBreed }) {
             </div>
           </div>
 
-          {searchQuery && filteredBreeds.length === 0 ? (
-            <div className={`text-center py-12 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              <svg className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-xl">
-                {language === 'en' ? 'No breeds found matching your search' : 'आपकी खोज से मेल खाने वाली कोई नस्ल नहीं मिली'}
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {displayedBreeds.map((breed) => (
-                  <BreedCard
-                    key={breed}
-                    breed={breed}
-                    isDark={isDark}
-                    onClick={() => handleBreedClick(breed)}
-                  />
-                ))}
-              </div>
-              
-              {hasMoreBreeds && (
-                <div className="text-center mt-12">
-                  <button
-                    onClick={() => navigate('/breeds')}
-                    className={`px-10 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${
-                      isDark 
-                        ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white' 
-                        : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span>{language === 'en' ? 'View All Breeds' : 'सभी नस्लें देखें'}</span>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </div>
-                  </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {displayedBreeds.map((breed) => (
+              <BreedCard
+                key={breed}
+                breed={breed}
+                isDark={isDark}
+                onClick={() => handleBreedClick(breed)}
+              />
+            ))}
+          </div>
+          
+          {hasMoreBreeds && (
+            <div className="text-center mt-12">
+              <button
+                onClick={() => navigate('/breeds')}
+                className={`px-10 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${
+                  isDark 
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white' 
+                    : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span>{language === 'en' ? 'View All Breeds' : 'सभी नस्लें देखें'}</span>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
                 </div>
-              )}
-            </>
+              </button>
+            </div>
           )}
         </div>
       </div>

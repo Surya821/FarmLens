@@ -1,5 +1,6 @@
 import { Moon, Sun, Globe } from "lucide-react";
 import {useNavigate} from 'react-router-dom';
+import logo from '../assets/farmlens-logo (1).png'
 
 function Header({ isDark, setIsDark, language, setLanguage }) {
 
@@ -12,13 +13,15 @@ function Header({ isDark, setIsDark, language, setLanguage }) {
       } shadow-md`}
     >
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-        <h1 onClick={() => navigate("/")}
-          className={`text-3xl font-bold cursor-pointer ${
-            isDark ? "text-green-400" : "text-green-600"
-          }`}
-        >
-          🐄 FarmLens
-        </h1>
+      <h1
+      onClick={() => navigate("/")}
+      className={`flex items-center gap-2 text-3xl font-bold cursor-pointer ${
+      isDark ? "text-green-400" : "text-green-600"
+      }`}
+      >
+        <img src={logo} alt="logo" width="50px" />
+        FarmLens
+      </h1>
 
         <div className="flex items-center gap-4">
           <button
