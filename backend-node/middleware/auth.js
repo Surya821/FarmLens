@@ -94,7 +94,17 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
-    // Verify OTP
+    // Check if mobile number already exists with a completed registration
+    const existingUser = await User.findOne({ 
+      mobile, 
+      name: { $ne: 'Temporary' } // Exclude temporary users
+    });
+    
+    if (existingUser) {
+      return res.status(400).json({ error: 'Mobile number already registered' });
+    }
+
+    // Verify OTP with temporary user
     const user = await User.findOne({ mobile });
     if (!user || !user.otp || user.otp.code !== otp) {
       return res.status(400).json({ error: 'Invalid OTP' });
@@ -144,6 +154,12 @@ router.post('/register', async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
+    
+    // Handle MongoDB duplicate key error
+    if (error.code === 11000) {
+      return res.status(400).json({ error: 'Mobile number already registered' });
+    }
+    
     res.status(500).json({ error: 'Registration failed' });
   }
 });
