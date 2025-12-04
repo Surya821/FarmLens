@@ -14,7 +14,8 @@ function DiseasePredictPage({ isDark, language }) {
   const t = translations[language];
 
   // Use environment variable for API URL
-  const API_URL = import.meta.env.VITE_API_URL || 'https://farmlens-backend.onrender.com';
+  // new — use the ML backend on port 8000 by default
+const API_URL = import.meta.env.VITE_PY_API_URL;
 
   // Fallback symptoms from symptomTranslations
   const fallbackSymptoms = Object.keys(symptomTranslations).slice(0, 30); // First 30 symptoms

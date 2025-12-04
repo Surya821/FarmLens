@@ -10,7 +10,7 @@ function PredictPage({ isDark, language, setSelectedBreed, prediction, setPredic
   const t = translations[language];
 
   // Use environment variable for API URL
-  const API_URL = import.meta.env.VITE_API_URL || 'https://farmlens-backend.onrender.com';
+  const API_URL = import.meta.env.VITE_PY_API_URL;
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
