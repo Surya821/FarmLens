@@ -22,8 +22,8 @@ function AddCattlePage({ isDark, language }) {
   const { username } = useParams();
   const { user } = useAuth();
 
-  // Use Vite environment variable
-  const API_BASE = import.meta.env.VITE_API_URL;
+  // API Base URL with fallback
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
   useEffect(() => {
     if (!user || user.username !== username) {
@@ -60,6 +60,12 @@ function AddCattlePage({ isDark, language }) {
     try {
       const token = localStorage.getItem('token');
       
+      if (!token) {
+        toast.error('No authentication token found');
+        navigate('/login');
+        return;
+      }
+      
       // Prepare the data
       const submitData = {
         name: formData.name,
@@ -74,6 +80,7 @@ function AddCattlePage({ isDark, language }) {
       };
 
       console.log('Submitting cattle data:', submitData);
+      console.log('API URL:', `${API_BASE}/api/cattle`);
 
       const response = await fetch(`${API_BASE}/api/cattle`, {
         method: 'POST',
@@ -89,6 +96,7 @@ function AddCattlePage({ isDark, language }) {
       
       if (response.ok) {
         toast.success('Cattle added successfully!');
+        // Navigate to dashboard to see the new cattle
         navigate(`/${username}`);
       } else {
         console.error('Server error response:', data);
@@ -96,9 +104,10 @@ function AddCattlePage({ isDark, language }) {
       }
     } catch (error) {
       console.error('Network error:', error);
-      toast.error('Network error: Failed to connect to server');
+      toast.error(`Failed to connect to server at ${API_BASE}. Make sure backend is running.`);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const breeds = Object.keys(breedData);
@@ -110,15 +119,6 @@ function AddCattlePage({ isDark, language }) {
           <h1 className={`text-3xl font-bold text-center mb-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Add New Cattle
           </h1>
-
-          {/* Debug info */}
-          {import.meta.env.DEV && (
-            <div className={`mb-4 p-3 rounded-lg ${isDark ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800'}`}>
-              <p><strong>Debug Info:</strong></p>
-              <p>API Base: {API_BASE}</p>
-              <p>Environment: {import.meta.env.MODE}</p>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Cattle Image */}

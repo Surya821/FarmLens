@@ -16,6 +16,9 @@ function CattleInfoPage({ isDark, language }) {
   const { username, cattleId } = useParams();
   const { user } = useAuth();
 
+  // API Base URL with fallback
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
   useEffect(() => {
     if (!user || user.username !== username) {
       navigate('/login');
@@ -24,32 +27,49 @@ function CattleInfoPage({ isDark, language }) {
     fetchCattle();
   }, [user, username, cattleId]);
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://farmlens-backend-node.onrender.com';
-
   const fetchCattle = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/cattle/my-cattle`, {
+      
+      if (!token) {
+        toast.error('No authentication token found');
+        navigate('/login');
+        return;
+      }
+
+      console.log('Fetching cattle with ID:', cattleId);
+      console.log('API URL:', `${API_BASE}/api/cattle/${cattleId}`);
+      
+      // Fetch single cattle by ID
+      const response = await fetch(`${API_BASE}/api/cattle/${cattleId}`, {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
       });
       
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
-        const cattleList = await response.json();
-        const currentCattle = cattleList.find(c => c._id === cattleId);
-        if (currentCattle) {
-          setCattle(currentCattle);
-          setFormData(currentCattle);
-        } else {
-          toast.error('Cattle not found');
-          navigate(`/${username}`);
-        }
+        const currentCattle = await response.json();
+        console.log('Cattle data received:', currentCattle);
+        setCattle(currentCattle);
+        setFormData(currentCattle);
+      } else {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        toast.error(errorData.error || 'Failed to fetch cattle details');
+        navigate(`/${username}`);
       }
     } catch (error) {
-      toast.error('Failed to fetch cattle details');
+      console.error('Network error:', error);
+      toast.error(`Failed to connect to server at ${API_BASE}`);
+      navigate(`/${username}`);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleChange = (e) => {
@@ -77,6 +97,10 @@ function CattleInfoPage({ isDark, language }) {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
+      
+      console.log('Updating cattle:', cattleId);
+      console.log('Update data:', formData);
+      
       const response = await fetch(`${API_BASE}/api/cattle/${cattleId}`, {
         method: 'PUT',
         headers: {
@@ -88,16 +112,22 @@ function CattleInfoPage({ isDark, language }) {
 
       if (response.ok) {
         const updatedCattle = await response.json();
+        console.log('Cattle updated:', updatedCattle);
         setCattle(updatedCattle);
+        setFormData(updatedCattle);
         setIsEditing(false);
         toast.success('Cattle updated successfully!');
       } else {
-        toast.error('Failed to update cattle');
+        const errorData = await response.json();
+        console.error('Update error:', errorData);
+        toast.error(errorData.error || 'Failed to update cattle');
       }
     } catch (error) {
+      console.error('Network error:', error);
       toast.error('Failed to update cattle');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleDelete = async () => {
@@ -118,9 +148,11 @@ function CattleInfoPage({ isDark, language }) {
         toast.success('Cattle deleted successfully');
         navigate(`/${username}`);
       } else {
-        toast.error('Failed to delete cattle');
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to delete cattle');
       }
     } catch (error) {
+      console.error('Delete error:', error);
       toast.error('Failed to delete cattle');
     }
   };
@@ -163,6 +195,12 @@ function CattleInfoPage({ isDark, language }) {
       <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className="text-center">
           <p className={`text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>Cattle not found</p>
+          <button
+            onClick={() => navigate(`/${username}`)}
+            className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            Back to Dashboard
+          </button>
         </div>
       </div>
     );
@@ -171,6 +209,7 @@ function CattleInfoPage({ isDark, language }) {
   return (
     <div className={`min-h-screen py-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
         <div className={`rounded-2xl p-8 shadow-lg ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
@@ -296,9 +335,8 @@ function CattleInfoPage({ isDark, language }) {
                     <button
                       type="button"
                       onClick={handlePredictBreed}
-                      className="ml-2 text-green-600 hover:text-green-700 text-xs flex items-center gap-1"
+                      className="ml-2 text-green-600 hover:text-green-700 text-xs"
                     >
-                      <Camera size={12} />
                       (Don't know? Predict breed)
                     </button>
                   )}
@@ -440,9 +478,8 @@ function CattleInfoPage({ isDark, language }) {
                   <button
                     type="button"
                     onClick={handlePredictDisease}
-                    className="ml-2 text-red-600 hover:text-red-700 text-xs flex items-center gap-1"
+                    className="ml-2 text-red-600 hover:text-red-700 text-xs"
                   >
-                    <Stethoscope size={12} />
                     (Don't know? Predict disease)
                   </button>
                 )}

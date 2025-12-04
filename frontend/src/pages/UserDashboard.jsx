@@ -14,13 +14,14 @@ function UserDashboard({ isDark, language }) {
   const { username } = useParams();
   const { user } = useAuth();
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL;
+  // API Base URL with fallback
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
   useEffect(() => {
     if (user && user.username === username) {
       fetchCattle();
       fetchStats();
-    } else {
+    } else if (!user) {
       navigate('/login');
     }
   }, [user, username]);
@@ -28,51 +29,81 @@ function UserDashboard({ isDark, language }) {
   const fetchCattle = async () => {
     try {
       const token = localStorage.getItem('token');
-      console.log('Fetching cattle from:', `${API_BASE}/api/cattle/my-cattle`);
-      console.log('Token:', token ? 'Present' : 'Missing');
+      
+      if (!token) {
+        toast.error('No authentication token found');
+        navigate('/login');
+        return;
+      }
+
+      console.log('Fetching from:', `${API_BASE}/api/cattle/my-cattle`);
       
       const response = await fetch(`${API_BASE}/api/cattle/my-cattle`, {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
       });
       
       console.log('Response status:', response.status);
       
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Received HTML instead of JSON:', text.substring(0, 200));
+        toast.error('Server error: Invalid response format. Make sure backend is running on ' + API_BASE);
+        setLoading(false);
+        return;
+      }
+      
       if (response.ok) {
         const data = await response.json();
         console.log('Cattle data received:', data);
-        setCattleList(data);
+        setCattleList(Array.isArray(data) ? data : []);
       } else {
         const errorData = await response.json();
         console.error('Failed to fetch cattle:', errorData);
-        toast.error('Failed to fetch cattle: ' + (errorData.error || 'Unknown error'));
+        toast.error(errorData.error || 'Failed to fetch cattle');
       }
     } catch (error) {
-      console.error('Network error fetching cattle:', error);
-      toast.error('Network error: Failed to fetch cattle');
+      console.error('Network error:', error);
+      toast.error(`Failed to connect to server at ${API_BASE}. Make sure backend is running.`);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
+      
+      if (!token) return;
+      
       const response = await fetch(`${API_BASE}/api/cattle/stats`, {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
       });
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Stats endpoint returned HTML');
+        return;
+      }
       
       if (response.ok) {
         const data = await response.json();
         console.log('Stats data:', data);
         setStats(data);
-      } else {
-        console.error('Failed to fetch stats');
       }
     } catch (error) {
-      console.error('Network error fetching stats:', error);
+      console.error('Error fetching stats:', error);
     }
   };
 
@@ -86,7 +117,9 @@ function UserDashboard({ isDark, language }) {
       const response = await fetch(`${API_BASE}/api/cattle/${cattleId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
       });
 
@@ -96,26 +129,27 @@ function UserDashboard({ isDark, language }) {
         fetchStats();
       } else {
         const errorData = await response.json();
-        toast.error('Failed to delete cattle: ' + (errorData.error || 'Unknown error'));
+        toast.error(errorData.error || 'Failed to delete cattle');
       }
     } catch (error) {
+      console.error('Error deleting cattle:', error);
       toast.error('Network error: Failed to delete cattle');
     }
   };
 
   const filteredAndSortedCattle = cattleList
     .filter(cattle => 
-      cattle.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cattle.breed.toLowerCase().includes(searchTerm.toLowerCase())
+      cattle.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cattle.breed?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
       switch (sortBy) {
         case 'name':
-          return a.name.localeCompare(b.name);
+          return (a.name || '').localeCompare(b.name || '');
         case 'date':
           return new Date(b.createdAt) - new Date(a.createdAt);
         case 'health':
-          return a.healthStatus.localeCompare(b.healthStatus);
+          return (a.healthStatus || '').localeCompare(b.healthStatus || '');
         default:
           return 0;
       }
@@ -128,7 +162,7 @@ function UserDashboard({ isDark, language }) {
       }`}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className={`mt-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Loading...</p>
+          <p className={`mt-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Loading your cattle...</p>
         </div>
       </div>
     );
@@ -160,17 +194,17 @@ function UserDashboard({ isDark, language }) {
             </div>
             
             <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {user?.name}
+              {user?.name || 'User'}
             </h1>
             <p className={`text-lg mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-              {user?.mobile}
+              {user?.mobile || ''}
             </p>
             
             <hr className={`my-6 ${isDark ? 'border-gray-700' : 'border-gray-200'}`} />
             
             <div className="flex justify-between items-center mb-6">
               <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Your Cattles
+                Your Cattle
               </h2>
               <button
                 onClick={() => navigate(`/${username}/addcattle`)}
@@ -190,13 +224,12 @@ function UserDashboard({ isDark, language }) {
               isDark ? 'bg-gray-700' : 'bg-green-50'
             }`}>
               <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-green-600'}`}>
-                {stats.totalCattle || 0}
+                {stats.totalCattle || cattleList.length}
               </div>
               <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-green-800'}`}>
                 Total Cattle
               </div>
             </div>
-            {/* Add more stat cards as needed */}
           </div>
 
           {/* Search and Filter */}
@@ -228,77 +261,86 @@ function UserDashboard({ isDark, language }) {
           </div>
 
           {/* Cattle Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAndSortedCattle.map((cattle) => (
-              <div
-                key={cattle._id}
-                className={`rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300 ${
-                  isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-white hover:bg-gray-50'
-                }`}
-              >
-                <div className="relative">
-                  <img
-                    src={cattle.image || '/default-cattle.jpg'}
-                    alt={cattle.name}
-                    className="w-full h-48 object-cover rounded-t-xl"
-                  />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteCattle(cattle._id);
-                    }}
-                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="p-4">
-                  <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {cattle.name}
-                  </h3>
-                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                    {cattle.breed} • {cattle.gender} • {cattle.age} years
-                  </p>
-                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs mt-2 ${
-                    cattle.healthStatus === 'Excellent' ? 'bg-green-100 text-green-800' :
-                    cattle.healthStatus === 'Good' ? 'bg-blue-100 text-blue-800' :
-                    cattle.healthStatus === 'Fair' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {cattle.healthStatus}
-                  </div>
-                  <div className="mt-4 flex justify-between">
+          {filteredAndSortedCattle.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredAndSortedCattle.map((cattle) => (
+                <div
+                  key={cattle._id}
+                  onClick={() => navigate(`/${username}/cattleinfo/${cattle._id}`)}
+                  className={`rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300 ${
+                    isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-white hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="relative">
+                    <img
+                      src={cattle.image || '/default-cattle.jpg'}
+                      alt={cattle.name}
+                      className="w-full h-48 object-cover rounded-t-xl"
+                    />
                     <button
-                      onClick={() => navigate(`/${username}/cattleinfo/${cattle._id}`)}
-                      className="text-green-600 hover:text-green-700 text-sm font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteCattle(cattle._id);
+                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
                     >
-                      View Details
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
                     </button>
-                    <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                      Updated: {new Date(cattle.updatedAt).toLocaleDateString()}
-                    </span>
+                  </div>
+                  <div className="p-4">
+                    <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {cattle.name}
+                    </h3>
+                    <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                      {cattle.breed} • {cattle.gender} • {cattle.age} years
+                    </p>
+                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs mt-2 ${
+                      cattle.healthStatus === 'Excellent' ? 'bg-green-100 text-green-800' :
+                      cattle.healthStatus === 'Good' ? 'bg-blue-100 text-blue-800' :
+                      cattle.healthStatus === 'Fair' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {cattle.healthStatus || 'Good'}
+                    </div>
+                    <div className="mt-4 flex justify-between">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/${username}/cattleinfo/${cattle._id}`);
+                        }}
+                        className="text-green-600 hover:text-green-700 text-sm font-medium"
+                      >
+                        View Details
+                      </button>
+                      <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {new Date(cattle.updatedAt).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          {filteredAndSortedCattle.length === 0 && (
+              ))}
+            </div>
+          ) : (
             <div className="text-center py-12">
               <svg className={`w-24 h-24 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p className={`text-lg ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                No cattle found. Add your first cattle to get started!
+              <p className={`text-lg mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                No cattle found
               </p>
-              <button
-                onClick={() => navigate(`/${username}/addcattle`)}
-                className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                Add Your First Cattle
-              </button>
+              <p className={`text-sm mb-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                {searchTerm ? 'Try adjusting your search' : 'Add your first cattle to get started!'}
+              </p>
+              {!searchTerm && (
+                <button
+                  onClick={() => navigate(`/${username}/addcattle`)}
+                  className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Add Your First Cattle
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Cattle from '../models/Cattle.js';
 import auth from '../middleware/auth.js';
 
@@ -16,6 +17,33 @@ router.get('/my-cattle', auth, async (req, res) => {
   } catch (error) {
     console.error('Error fetching cattle:', error);
     res.status(500).json({ error: 'Failed to fetch cattle' });
+  }
+});
+
+// Get single cattle by ID
+router.get('/:id', auth, async (req, res) => {
+  try {
+    console.log('Fetching cattle with ID:', req.params.id);
+    
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid cattle ID' });
+    }
+    
+    const cattle = await Cattle.findOne({
+      _id: req.params.id,
+      owner: req.userId
+    });
+
+    if (!cattle) {
+      return res.status(404).json({ error: 'Cattle not found' });
+    }
+
+    console.log('Cattle found:', cattle._id);
+    res.json(cattle);
+  } catch (error) {
+    console.error('Error fetching cattle by ID:', error);
+    res.status(500).json({ error: 'Failed to fetch cattle details' });
   }
 });
 
@@ -75,9 +103,22 @@ router.post('/', auth, async (req, res) => {
 // Update cattle
 router.put('/:id', auth, async (req, res) => {
   try {
+    console.log('Updating cattle:', req.params.id);
+    
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid cattle ID' });
+    }
+
+    // Convert numeric fields
+    const updateData = { ...req.body };
+    if (updateData.age) updateData.age = parseFloat(updateData.age);
+    if (updateData.weight) updateData.weight = parseFloat(updateData.weight);
+    if (updateData.milkProduction) updateData.milkProduction = parseFloat(updateData.milkProduction);
+
     const cattle = await Cattle.findOneAndUpdate(
       { _id: req.params.id, owner: req.userId },
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
 
@@ -85,9 +126,20 @@ router.put('/:id', auth, async (req, res) => {
       return res.status(404).json({ error: 'Cattle not found' });
     }
 
+    console.log('Cattle updated successfully:', cattle._id);
     res.json(cattle);
   } catch (error) {
     console.error('Error updating cattle:', error);
+    
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ error: errors.join(', ') });
+    }
+    
+    if (error.code === 11000) {
+      return res.status(400).json({ error: 'Cattle ID already exists' });
+    }
+    
     res.status(500).json({ error: 'Failed to update cattle' });
   }
 });
@@ -95,6 +147,13 @@ router.put('/:id', auth, async (req, res) => {
 // Delete cattle
 router.delete('/:id', auth, async (req, res) => {
   try {
+    console.log('Deleting cattle:', req.params.id);
+    
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid cattle ID' });
+    }
+
     const cattle = await Cattle.findOneAndDelete({
       _id: req.params.id,
       owner: req.userId
@@ -104,6 +163,7 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(404).json({ error: 'Cattle not found' });
     }
 
+    console.log('Cattle deleted successfully:', cattle._id);
     res.json({ message: 'Cattle deleted successfully' });
   } catch (error) {
     console.error('Error deleting cattle:', error);
@@ -114,15 +174,18 @@ router.delete('/:id', auth, async (req, res) => {
 // Get cattle statistics
 router.get('/stats', auth, async (req, res) => {
   try {
+    console.log('Fetching stats for user:', req.userId);
+    
     const totalCattle = await Cattle.countDocuments({ owner: req.userId });
     
+    // Use new mongoose.Types.ObjectId syntax
     const healthStats = await Cattle.aggregate([
-      { $match: { owner: mongoose.Types.ObjectId(req.userId) } },
+      { $match: { owner: new mongoose.Types.ObjectId(req.userId) } },
       { $group: { _id: '$healthStatus', count: { $sum: 1 } } }
     ]);
 
     const genderStats = await Cattle.aggregate([
-      { $match: { owner: mongoose.Types.ObjectId(req.userId) } },
+      { $match: { owner: new mongoose.Types.ObjectId(req.userId) } },
       { $group: { _id: '$gender', count: { $sum: 1 } } }
     ]);
 
