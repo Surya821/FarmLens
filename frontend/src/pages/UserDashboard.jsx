@@ -14,7 +14,7 @@ function UserDashboard({ isDark, language }) {
   const { username } = useParams();
   const { user } = useAuth();
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://farmlens-backend-node.onrender.com';
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     if (user && user.username === username) {
@@ -28,18 +28,29 @@ function UserDashboard({ isDark, language }) {
   const fetchCattle = async () => {
     try {
       const token = localStorage.getItem('token');
+      console.log('Fetching cattle from:', `${API_BASE}/api/cattle/my-cattle`);
+      console.log('Token:', token ? 'Present' : 'Missing');
+      
       const response = await fetch(`${API_BASE}/api/cattle/my-cattle`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Cattle data received:', data);
         setCattleList(data);
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to fetch cattle:', errorData);
+        toast.error('Failed to fetch cattle: ' + (errorData.error || 'Unknown error'));
       }
     } catch (error) {
-      toast.error('Failed to fetch cattle');
+      console.error('Network error fetching cattle:', error);
+      toast.error('Network error: Failed to fetch cattle');
     }
     setLoading(false);
   };
@@ -55,10 +66,13 @@ function UserDashboard({ isDark, language }) {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('Stats data:', data);
         setStats(data);
+      } else {
+        console.error('Failed to fetch stats');
       }
     } catch (error) {
-      console.error('Failed to fetch stats');
+      console.error('Network error fetching stats:', error);
     }
   };
 
@@ -81,10 +95,11 @@ function UserDashboard({ isDark, language }) {
         fetchCattle();
         fetchStats();
       } else {
-        toast.error('Failed to delete cattle');
+        const errorData = await response.json();
+        toast.error('Failed to delete cattle: ' + (errorData.error || 'Unknown error'));
       }
     } catch (error) {
-      toast.error('Failed to delete cattle');
+      toast.error('Network error: Failed to delete cattle');
     }
   };
 
@@ -122,6 +137,16 @@ function UserDashboard({ isDark, language }) {
   return (
     <div className={`min-h-screen pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Debug Info - Only show in development */}
+        {import.meta.env.MODE === 'development' && (
+          <div className={`mb-4 p-3 rounded-lg ${isDark ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'}`}>
+            <p><strong>Debug Info:</strong></p>
+            <p>API Base: {API_BASE}</p>
+            <p>Cattle Count: {cattleList.length}</p>
+            <p>User: {user?.username}</p>
+          </div>
+        )}
+
         {/* User Profile Section */}
         <div className={`rounded-2xl p-8 mb-8 shadow-lg ${
           isDark ? 'bg-gray-800' : 'bg-white'

@@ -7,10 +7,14 @@ const router = express.Router();
 // Get all cattle for user
 router.get('/my-cattle', auth, async (req, res) => {
   try {
+    console.log('Fetching cattle for user:', req.userId);
     const cattle = await Cattle.find({ owner: req.userId })
       .sort({ createdAt: -1 });
+    
+    console.log(`Found ${cattle.length} cattle for user ${req.userId}`);
     res.json(cattle);
   } catch (error) {
+    console.error('Error fetching cattle:', error);
     res.status(500).json({ error: 'Failed to fetch cattle' });
   }
 });
@@ -18,17 +22,53 @@ router.get('/my-cattle', auth, async (req, res) => {
 // Add new cattle
 router.post('/', auth, async (req, res) => {
   try {
+    console.log('Adding new cattle for user:', req.userId);
+    console.log('Cattle data:', req.body);
+
+    // Validate required fields
+    const requiredFields = ['name', 'cattleId', 'breed', 'age', 'weight', 'gender'];
+    const missingFields = requiredFields.filter(field => !req.body[field]);
+    
+    if (missingFields.length > 0) {
+      return res.status(400).json({ 
+        error: `Missing required fields: ${missingFields.join(', ')}` 
+      });
+    }
+
+    // Check if cattleId already exists
+    const existingCattle = await Cattle.findOne({ cattleId: req.body.cattleId });
+    if (existingCattle) {
+      return res.status(400).json({ error: 'Cattle ID already exists' });
+    }
+
     const cattleData = {
       ...req.body,
       owner: req.userId
     };
 
-    const cattle = new Cattle(cattleData);
-    await cattle.save();
+    // Convert string numbers to actual numbers
+    cattleData.age = parseFloat(cattleData.age);
+    cattleData.weight = parseFloat(cattleData.weight);
+    cattleData.milkProduction = cattleData.milkProduction ? parseFloat(cattleData.milkProduction) : 0;
 
-    res.json(cattle);
+    const cattle = new Cattle(cattleData);
+    const savedCattle = await cattle.save();
+    
+    console.log('Cattle saved successfully:', savedCattle._id);
+    res.status(201).json(savedCattle);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to add cattle' });
+    console.error('Error adding cattle:', error);
+    
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ error: errors.join(', ') });
+    }
+    
+    if (error.code === 11000) {
+      return res.status(400).json({ error: 'Cattle ID already exists' });
+    }
+    
+    res.status(500).json({ error: 'Failed to add cattle: ' + error.message });
   }
 });
 
@@ -38,7 +78,7 @@ router.put('/:id', auth, async (req, res) => {
     const cattle = await Cattle.findOneAndUpdate(
       { _id: req.params.id, owner: req.userId },
       req.body,
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!cattle) {
@@ -47,6 +87,7 @@ router.put('/:id', auth, async (req, res) => {
 
     res.json(cattle);
   } catch (error) {
+    console.error('Error updating cattle:', error);
     res.status(500).json({ error: 'Failed to update cattle' });
   }
 });
@@ -65,6 +106,7 @@ router.delete('/:id', auth, async (req, res) => {
 
     res.json({ message: 'Cattle deleted successfully' });
   } catch (error) {
+    console.error('Error deleting cattle:', error);
     res.status(500).json({ error: 'Failed to delete cattle' });
   }
 });
@@ -75,12 +117,12 @@ router.get('/stats', auth, async (req, res) => {
     const totalCattle = await Cattle.countDocuments({ owner: req.userId });
     
     const healthStats = await Cattle.aggregate([
-      { $match: { owner: req.userId } },
+      { $match: { owner: mongoose.Types.ObjectId(req.userId) } },
       { $group: { _id: '$healthStatus', count: { $sum: 1 } } }
     ]);
 
     const genderStats = await Cattle.aggregate([
-      { $match: { owner: req.userId } },
+      { $match: { owner: mongoose.Types.ObjectId(req.userId) } },
       { $group: { _id: '$gender', count: { $sum: 1 } } }
     ]);
 
@@ -90,6 +132,7 @@ router.get('/stats', auth, async (req, res) => {
       genderStats
     });
   } catch (error) {
+    console.error('Error fetching stats:', error);
     res.status(500).json({ error: 'Failed to fetch statistics' });
   }
 });

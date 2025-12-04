@@ -22,14 +22,14 @@ function AddCattlePage({ isDark, language }) {
   const { username } = useParams();
   const { user } = useAuth();
 
-  // Use environment variable or fallback to Render URL
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://farmlens-backend-node.onrender.com';
+  // Use Vite environment variable
+  const API_BASE = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     if (!user || user.username !== username) {
       navigate('/login');
     }
-  }, [user, username]);
+  }, [user, username, navigate]);
 
   const handleChange = (e) => {
     setFormData({
@@ -41,6 +41,7 @@ function AddCattlePage({ isDark, language }) {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // For base64 image upload
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData({
@@ -58,24 +59,44 @@ function AddCattlePage({ isDark, language }) {
 
     try {
       const token = localStorage.getItem('token');
+      
+      // Prepare the data
+      const submitData = {
+        name: formData.name,
+        cattleId: formData.cattleId,
+        breed: formData.breed,
+        age: parseFloat(formData.age),
+        weight: parseFloat(formData.weight),
+        gender: formData.gender,
+        milkProduction: formData.milkProduction ? parseFloat(formData.milkProduction) : 0,
+        disease: formData.disease || 'None',
+        image: formData.image || ''
+      };
+
+      console.log('Submitting cattle data:', submitData);
+
       const response = await fetch(`${API_BASE}/api/cattle`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(submitData)
       });
 
+      const data = await response.json();
+      console.log('Server response:', data);
+      
       if (response.ok) {
         toast.success('Cattle added successfully!');
         navigate(`/${username}`);
       } else {
-        const data = await response.json();
-        toast.error(data.error || 'Failed to add cattle');
+        console.error('Server error response:', data);
+        toast.error(data.error || `Failed to add cattle: ${response.status}`);
       }
     } catch (error) {
-      toast.error('Failed to add cattle');
+      console.error('Network error:', error);
+      toast.error('Network error: Failed to connect to server');
     }
     setLoading(false);
   };
@@ -89,6 +110,15 @@ function AddCattlePage({ isDark, language }) {
           <h1 className={`text-3xl font-bold text-center mb-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Add New Cattle
           </h1>
+
+          {/* Debug info */}
+          {import.meta.env.DEV && (
+            <div className={`mb-4 p-3 rounded-lg ${isDark ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800'}`}>
+              <p><strong>Debug Info:</strong></p>
+              <p>API Base: {API_BASE}</p>
+              <p>Environment: {import.meta.env.MODE}</p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Cattle Image */}

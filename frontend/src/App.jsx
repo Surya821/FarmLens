@@ -9,6 +9,7 @@ import HomePage from './pages/HomePage';
 import BreedsPage from './pages/BreedsPage';
 import PredictPage from './pages/PredictPage';
 import DiseasePredictPage from './pages/DiseasePredictPage';
+import PrescriptionPage from './pages/PrescriptionPage';
 import BreedInfoPage from './pages/BreedInfoPage';
 import AuthPage from './pages/AuthPage';
 import UserDashboard from './pages/UserDashboard';
@@ -80,6 +81,17 @@ function App() {
                 } 
               />
               
+              {/* NEW PRESCRIPTION PAGE ROUTE */}
+              <Route 
+                path="/prescription" 
+                element={
+                  <PrescriptionPage
+                    isDark={isDark}
+                    language={language}
+                  />
+                } 
+              />
+              
               <Route 
                 path="/breed/:breedName" 
                 element={
@@ -92,7 +104,7 @@ function App() {
                 } 
               />
               
-              {/* New Routes */}
+              {/* Auth Routes */}
               <Route 
                 path="/login" 
                 element={
@@ -113,6 +125,7 @@ function App() {
                 } 
               />
               
+              {/* User Routes */}
               <Route 
                 path="/:username" 
                 element={
