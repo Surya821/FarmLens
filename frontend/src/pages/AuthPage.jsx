@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
+import { EyeIcon, EyeSlashIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 function AuthPage({ isDark, language }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -9,17 +10,27 @@ function AuthPage({ isDark, language }) {
     name: '',
     mobile: '',
     address: '',
-    otp: ''
+    password: '',
+    confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
 
-  // Use environment variable or fallback to Render URL
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://farmlens-backend-node.onrender.com';
+  // Password requirements check
+  const passwordRequirements = {
+    length: formData.password.length >= 8,
+    uppercase: /[A-Z]/.test(formData.password),
+    lowercase: /[a-z]/.test(formData.password),
+    number: /\d/.test(formData.password),
+    special: /[!@#$%^&*(),.?":{}|<>]/.test(formData.password)
+  };
+
+  const isPasswordValid = Object.values(passwordRequirements).every(req => req);
 
   // Set initial mode based on route
   React.useEffect(() => {
@@ -37,62 +48,123 @@ function AuthPage({ isDark, language }) {
     });
   };
 
-  const sendOTP = async () => {
-    if (!formData.mobile) {
-      toast.error('Please enter mobile number');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE}/api/auth/send-otp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ mobile: formData.mobile })
-      });
-
-      if (response.ok) {
-        setOtpSent(true);
-        toast.success('OTP sent successfully!');
-      } else {
-        toast.error('Failed to send OTP');
+  const validateForm = () => {
+    if (!isLogin) {
+      // Registration validation
+      if (!formData.name || !formData.name.trim()) {
+        toast.error('Name is required');
+        return false;
       }
-    } catch (error) {
-      toast.error('Failed to send OTP');
+      if (!formData.mobile || !formData.mobile.trim()) {
+        toast.error('Mobile number is required');
+        return false;
+      }
+      if (!formData.address || !formData.address.trim()) {
+        toast.error('Address is required');
+        return false;
+      }
+      if (!formData.password) {
+        toast.error('Password is required');
+        return false;
+      }
+      if (!formData.confirmPassword) {
+        toast.error('Please confirm your password');
+        return false;
+      }
+      
+      if (formData.password !== formData.confirmPassword) {
+        toast.error('Passwords do not match');
+        return false;
+      }
+      
+      if (!isPasswordValid) {
+        toast.error('Password does not meet requirements');
+        return false;
+      }
+    } else {
+      // Login validation
+      if (!formData.mobile || !formData.mobile.trim()) {
+        toast.error('Mobile number is required');
+        return false;
+      }
+      if (!formData.password) {
+        toast.error('Password is required');
+        return false;
+      }
     }
-    setLoading(false);
+    
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const API_BASE = 'http://localhost:5000';
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      
+      // Prepare data for API - ensure all fields are strings
+      const requestData = isLogin 
+        ? { 
+            mobile: String(formData.mobile).trim(), 
+            password: String(formData.password)
+          }
+        : { 
+            name: String(formData.name).trim(), 
+            mobile: String(formData.mobile).trim(), 
+            address: String(formData.address).trim(), 
+            password: String(formData.password)
+          };
+      
+      console.log('Sending request to:', `${API_BASE}${endpoint}`);
+      console.log('Request data:', requestData);
+      
       const response = await fetch(`${API_BASE}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(requestData)
       });
 
+      console.log('Response status:', response.status);
+
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (response.ok) {
         login(data.user, data.token);
         toast.success(isLogin ? 'Successfully logged in!' : 'Successfully registered!');
         navigate(`/${data.user.username}`);
       } else {
-        toast.error(data.error);
+        toast.error(data.error || `Error: ${response.status}`);
       }
     } catch (error) {
-      toast.error('Something went wrong');
+      console.error('Request error:', error);
+      toast.error('Connection error. Please check if backend server is running on localhost:5000');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
+
+  const PasswordRequirementItem = ({ condition, text }) => (
+    <div className="flex items-center space-x-2">
+      {condition ? (
+        <CheckCircleIcon className="w-4 h-4 text-green-500" />
+      ) : (
+        <XCircleIcon className="w-4 h-4 text-red-500" />
+      )}
+      <span className={`text-xs ${condition ? 'text-green-500' : 'text-gray-500'}`}>
+        {text}
+      </span>
+    </div>
+  );
 
   return (
     <div className={`min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 ${
@@ -115,7 +187,7 @@ function AuthPage({ isDark, language }) {
                 <label htmlFor="name" className={`block text-sm font-medium ${
                   isDark ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  Full Name
+                  Full Name *
                 </label>
                 <input
                   id="name"
@@ -129,6 +201,7 @@ function AuthPage({ isDark, language }) {
                       ? 'bg-gray-700 border-gray-600 text-white' 
                       : 'bg-white border-gray-300 text-gray-900'
                   }`}
+                  placeholder="Enter your full name"
                 />
               </div>
 
@@ -136,7 +209,7 @@ function AuthPage({ isDark, language }) {
                 <label htmlFor="address" className={`block text-sm font-medium ${
                   isDark ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  Address
+                  Address *
                 </label>
                 <textarea
                   id="address"
@@ -150,6 +223,7 @@ function AuthPage({ isDark, language }) {
                       ? 'bg-gray-700 border-gray-600 text-white' 
                       : 'bg-white border-gray-300 text-gray-900'
                   }`}
+                  placeholder="Enter your address"
                 />
               </div>
             </>
@@ -159,66 +233,158 @@ function AuthPage({ isDark, language }) {
             <label htmlFor="mobile" className={`block text-sm font-medium ${
               isDark ? 'text-gray-300' : 'text-gray-700'
             }`}>
-              Mobile Number
-            </label>
-            <div className="mt-1 flex rounded-lg shadow-sm">
-              <input
-                id="mobile"
-                name="mobile"
-                type="tel"
-                required
-                value={formData.mobile}
-                onChange={handleChange}
-                className={`flex-1 min-w-0 block w-full px-3 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                  isDark 
-                    ? 'bg-gray-700 border-gray-600 text-white' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}
-                placeholder="Enter mobile number"
-              />
-              <button
-                type="button"
-                onClick={sendOTP}
-                disabled={loading || otpSent}
-                className={`inline-flex items-center px-4 py-2 border border-l-0 text-sm font-medium rounded-r-lg ${
-                  isDark 
-                    ? 'bg-green-600 text-white border-gray-600 hover:bg-green-700' 
-                    : 'bg-green-500 text-white border-gray-300 hover:bg-green-600'
-                } ${(loading || otpSent) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                {loading ? 'Sending...' : otpSent ? 'Sent' : 'Send OTP'}
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="otp" className={`block text-sm font-medium ${
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            }`}>
-              OTP
+              Mobile Number *
             </label>
             <input
-              id="otp"
-              name="otp"
-              type="text"
+              id="mobile"
+              name="mobile"
+              type="tel"
               required
-              value={formData.otp}
+              value={formData.mobile}
               onChange={handleChange}
               className={`mt-1 block w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
                 isDark 
                   ? 'bg-gray-700 border-gray-600 text-white' 
                   : 'bg-white border-gray-300 text-gray-900'
               }`}
-              placeholder="Enter OTP"
+              placeholder="Enter mobile number"
             />
           </div>
 
           <div>
+            <label htmlFor="password" className={`block text-sm font-medium ${
+              isDark ? 'text-gray-300' : 'text-gray-700'
+            }`}>
+              Password *
+            </label>
+            <div className="relative mt-1">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className={`block w-full px-3 py-2 pr-10 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                  isDark 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+                placeholder="Enter password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className={`absolute inset-y-0 right-0 pr-3 flex items-center ${
+                  isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+            
+            {/* Password Requirements - Only show for registration */}
+            {!isLogin && formData.password && (
+              <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <p className={`text-xs font-medium mb-2 ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  Password must contain:
+                </p>
+                <div className="grid grid-cols-1 gap-1">
+                  <PasswordRequirementItem 
+                    condition={passwordRequirements.length}
+                    text="At least 8 characters"
+                  />
+                  <PasswordRequirementItem 
+                    condition={passwordRequirements.uppercase}
+                    text="At least one uppercase letter (A-Z)"
+                  />
+                  <PasswordRequirementItem 
+                    condition={passwordRequirements.lowercase}
+                    text="At least one lowercase letter (a-z)"
+                  />
+                  <PasswordRequirementItem 
+                    condition={passwordRequirements.number}
+                    text="At least one number (0-9)"
+                  />
+                  <PasswordRequirementItem 
+                    condition={passwordRequirements.special}
+                    text="At least one special character (!@#$%^&*)"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {!isLogin && (
+            <div>
+              <label htmlFor="confirmPassword" className={`block text-sm font-medium ${
+                isDark ? 'text-gray-300' : 'text-gray-700'
+              }`}>
+                Confirm Password *
+              </label>
+              <div className="relative mt-1">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={`block w-full px-3 py-2 pr-10 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                    isDark 
+                      ? 'bg-gray-700 border-gray-600 text-white' 
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                  placeholder="Confirm password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className={`absolute inset-y-0 right-0 pr-3 flex items-center ${
+                    isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {showConfirmPassword ? (
+                    <EyeSlashIcon className="h-5 w-5" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+              
+              {/* Password match indicator */}
+              {formData.confirmPassword && (
+                <div className="mt-2 flex items-center">
+                  {formData.password === formData.confirmPassword ? (
+                    <>
+                      <CheckCircleIcon className="w-4 h-4 text-green-500 mr-2" />
+                      <span className="text-xs text-green-500">Passwords match</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircleIcon className="w-4 h-4 text-red-500 mr-2" />
+                      <span className="text-xs text-red-500">Passwords do not match</span>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div>
             <button
               type="submit"
-              disabled={loading}
-              className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${
-                loading ? 'opacity-50 cursor-not-allowed' : ''
+              disabled={loading || (!isLogin && !isPasswordValid)}
+              className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${
+                loading || (!isLogin && !isPasswordValid)
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-green-600 hover:bg-green-700'
               } ${isDark ? 'focus:ring-offset-gray-800' : 'focus:ring-offset-white'}`}
             >
               {loading ? 'Processing...' : (isLogin ? 'Sign in' : 'Register')}
@@ -231,6 +397,14 @@ function AuthPage({ isDark, language }) {
               onClick={() => {
                 setIsLogin(!isLogin);
                 navigate(isLogin ? '/register' : '/login');
+                // Reset form when switching modes
+                setFormData({
+                  name: '',
+                  mobile: '',
+                  address: '',
+                  password: '',
+                  confirmPassword: ''
+                });
               }}
               className={`text-sm ${
                 isDark ? 'text-green-400 hover:text-green-300' : 'text-green-600 hover:text-green-500'

@@ -1,109 +1,80 @@
 import express from 'express';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
-import twilio from 'twilio';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
-// Initialize Twilio client only if credentials are provided
-let client;
-try {
-  if (process.env.TWILIO_SID && process.env.TWILIO_AUTH_TOKEN) {
-    client = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
-  } else {
-    console.log('Twilio credentials not found. OTP will be logged to console.');
-  }
-} catch (error) {
-  console.log('Twilio initialization failed. OTP will be logged to console.');
-}
-
-// Generate OTP
-function generateOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-// Send OTP
-router.post('/send-otp', async (req, res) => {
-  try {
-    const { mobile } = req.body;
-    
-    if (!mobile) {
-      return res.status(400).json({ error: 'Mobile number is required' });
-    }
-
-    const otp = generateOTP();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    let user = await User.findOne({ mobile });
-    
-    if (user) {
-      user.otp = { code: otp, expiresAt };
-      await user.save();
-    } else {
-      // For new registration, create a temporary user record
-      user = new User({
-        mobile,
-        otp: { code: otp, expiresAt },
-        name: 'Temporary',
-        address: 'Temporary',
-        username: 'temporary'
-      });
-      await user.save();
-    }
-
-    // Log OTP to console (for development)
-    console.log(`OTP for ${mobile}: ${otp}`);
-    console.log(`OTP expires at: ${expiresAt}`);
-    
-    // Try to send OTP via Twilio if client is initialized
-    if (client && process.env.TWILIO_PHONE_NUMBER) {
-      try {
-        await client.messages.create({
-          body: `Your FarmLens OTP is: ${otp}. It will expire in 10 minutes.`,
-          from: process.env.TWILIO_PHONE_NUMBER,
-          to: mobile
-        });
-        console.log(`OTP sent via SMS to ${mobile}`);
-      } catch (twilioError) {
-        console.log('Twilio SMS failed:', twilioError.message);
-        console.log(`OTP for ${mobile}: ${otp} (Please use this OTP)`);
-      }
-    } else {
-      console.log(`OTP for ${mobile}: ${otp} (Twilio not configured)`);
-    }
-
-    res.json({ 
-      message: 'OTP sent successfully',
-      debug: process.env.NODE_ENV === 'development' ? { otp, expiresAt } : undefined
+// Check MongoDB connection middleware - Fixed version
+const checkDBConnection = (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({ 
+      error: 'Database connection not available. Please try again later.' 
     });
-  } catch (error) {
-    console.error('Send OTP error:', error);
-    res.status(500).json({ error: 'Failed to send OTP' });
   }
-});
+  next();
+};
 
-// Register
-router.post('/register', async (req, res) => {
+// Password validation function
+const validatePassword = (password) => {
+  const requirements = {
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /\d/.test(password),
+    special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+  };
+  
+  if (!requirements.length) return { valid: false, error: 'Password must be at least 8 characters long' };
+  if (!requirements.uppercase) return { valid: false, error: 'Password must contain at least one uppercase letter' };
+  if (!requirements.lowercase) return { valid: false, error: 'Password must contain at least one lowercase letter' };
+  if (!requirements.number) return { valid: false, error: 'Password must contain at least one number' };
+  if (!requirements.special) return { valid: false, error: 'Password must contain at least one special character' };
+  
+  return { valid: true };
+};
+
+// Register new user
+router.post('/register', checkDBConnection, async (req, res) => {
   try {
-    const { name, mobile, address, otp } = req.body;
+    console.log('Register request body:', req.body);
+    
+    const { name, mobile, address, password } = req.body;
 
-    if (!name || !mobile || !address || !otp) {
-      return res.status(400).json({ error: 'All fields are required' });
+    // Check for missing fields
+    if (!name || !mobile || !address || !password) {
+      console.log('Missing fields:', { name: !!name, mobile: !!mobile, address: !!address, password: !!password });
+      return res.status(400).json({ 
+        error: 'All fields are required'
+      });
     }
 
-    // Verify OTP
-    const user = await User.findOne({ mobile });
-    if (!user || !user.otp || user.otp.code !== otp) {
-      return res.status(400).json({ error: 'Invalid OTP' });
+    // Trim inputs
+    const trimmedName = name.trim();
+    const trimmedMobile = mobile.trim();
+    const trimmedAddress = address.trim();
+
+    // Check if fields are empty after trimming
+    if (!trimmedName || !trimmedMobile || !trimmedAddress || !password) {
+      return res.status(400).json({ 
+        error: 'All fields must contain valid data' 
+      });
     }
 
-    // Check if OTP is expired
-    if (new Date() > user.otp.expiresAt) {
-      return res.status(400).json({ error: 'OTP has expired' });
+    // Validate password on server side
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({ error: passwordValidation.error });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ mobile: trimmedMobile });
+    if (existingUser) {
+      return res.status(400).json({ error: 'User with this mobile number already exists' });
     }
 
     // Generate username
-    const baseUsername = name.toLowerCase().replace(/\s+/g, '');
+    const baseUsername = trimmedName.toLowerCase().replace(/\s+/g, '');
     let username = baseUsername;
     let counter = 1;
     
@@ -112,11 +83,14 @@ router.post('/register', async (req, res) => {
       counter++;
     }
 
-    // Update user with actual data
-    user.name = name;
-    user.address = address;
-    user.username = username;
-    user.otp = undefined; // Clear OTP after successful verification
+    // Create new user - password will be hashed by the pre-save middleware
+    const user = new User({
+      name: trimmedName,
+      mobile: trimmedMobile,
+      address: trimmedAddress,
+      username,
+      password: password // Don't hash here - let the model middleware handle it
+    });
 
     await user.save();
 
@@ -127,7 +101,9 @@ router.post('/register', async (req, res) => {
       { expiresIn: '30d' }
     );
 
-    res.json({
+    console.log('User registered successfully:', user._id);
+    
+    res.status(201).json({
       token,
       user: {
         id: user._id,
@@ -140,37 +116,46 @@ router.post('/register', async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ error: 'Registration failed' });
+    
+    if (error.code === 11000) {
+      // Duplicate key error
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({ 
+        error: `${field === 'mobile' ? 'Mobile number' : 'Username'} already registered` 
+      });
+    }
+    
+    res.status(500).json({ error: 'Registration failed. Please try again.' });
   }
 });
 
-// Login
-router.post('/login', async (req, res) => {
+// Login user
+router.post('/login', checkDBConnection, async (req, res) => {
   try {
-    const { mobile, otp } = req.body;
+    console.log('Login request body:', req.body);
+    
+    const { mobile, password } = req.body;
 
-    if (!mobile || !otp) {
-      return res.status(400).json({ error: 'Mobile number and OTP are required' });
+    if (!mobile || !password) {
+      return res.status(400).json({ 
+        error: 'Mobile number and password are required'
+      });
     }
 
-    const user = await User.findOne({ mobile });
+    // Trim mobile number
+    const trimmedMobile = mobile.trim();
+
+    // Find user
+    const user = await User.findOne({ mobile: trimmedMobile });
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(401).json({ error: 'Invalid mobile number or password' });
     }
 
-    // Verify OTP
-    if (!user.otp || user.otp.code !== otp) {
-      return res.status(400).json({ error: 'Invalid OTP' });
+    // Check password using the model method
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid mobile number or password' });
     }
-
-    // Check if OTP is expired
-    if (new Date() > user.otp.expiresAt) {
-      return res.status(400).json({ error: 'OTP has expired' });
-    }
-
-    // Clear OTP after successful login
-    user.otp = undefined;
-    await user.save();
 
     // Generate token
     const token = jwt.sign(
@@ -179,6 +164,8 @@ router.post('/login', async (req, res) => {
       { expiresIn: '30d' }
     );
 
+    console.log('User logged in successfully:', user._id);
+    
     res.json({
       token,
       user: {
@@ -192,7 +179,7 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    res.status(500).json({ error: 'Login failed. Please try again.' });
   }
 });
 

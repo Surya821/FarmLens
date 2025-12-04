@@ -137,15 +137,6 @@ function UserDashboard({ isDark, language }) {
   return (
     <div className={`min-h-screen pb-20 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Debug Info - Only show in development */}
-        {import.meta.env.MODE === 'development' && (
-          <div className={`mb-4 p-3 rounded-lg ${isDark ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'}`}>
-            <p><strong>Debug Info:</strong></p>
-            <p>API Base: {API_BASE}</p>
-            <p>Cattle Count: {cattleList.length}</p>
-            <p>User: {user?.username}</p>
-          </div>
-        )}
 
         {/* User Profile Section */}
         <div className={`rounded-2xl p-8 mb-8 shadow-lg ${

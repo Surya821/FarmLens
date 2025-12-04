@@ -13,8 +13,13 @@ import userRoutes from './routes/user.js';
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*', // Update this to your frontend URL in production
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static('uploads'));
 
 // Routes
@@ -22,27 +27,88 @@ app.use('/api/auth', authRoutes);
 app.use('/api/cattle', cattleRoutes);
 app.use('/api/user', userRoutes);
 
-// MongoDB Connection
+// MongoDB Connection with better error handling
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/farmlens';
-mongoose.connect(MONGODB_URI, {
+
+// MongoDB connection options
+const mongooseOptions = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-})
-.then(() => console.log('MongoDB Connected Successfully'))
-.catch(err => console.log('MongoDB Connection Error:', err));
+  serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds instead of 30
+  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+  family: 4 // Use IPv4, skip trying IPv6
+};
+
+// Function to connect to MongoDB
+const connectWithRetry = () => {
+  console.log('Attempting MongoDB connection...');
+  console.log('MongoDB URI:', MONGODB_URI.replace(/mongodb\+srv:\/\/([^:]+):([^@]+)@/, 'mongodb+srv://USERNAME:PASSWORD@'));
+  
+  mongoose.connect(MONGODB_URI, mongooseOptions)
+  .then(() => {
+    console.log('✅ MongoDB Connected Successfully');
+    console.log('Database Name:', mongoose.connection.name);
+    console.log('Host:', mongoose.connection.host);
+  })
+  .catch(err => {
+    console.error('❌ MongoDB Connection Error:', err.message);
+    console.log('Retrying connection in 5 seconds...');
+    setTimeout(connectWithRetry, 5000);
+  });
+};
+
+// Start connection
+connectWithRetry();
+
+// MongoDB connection events
+mongoose.connection.on('connected', () => {
+  console.log('Mongoose connected to DB');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('Mongoose connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('Mongoose disconnected from DB');
+});
 
 // Basic route for testing
 app.get('/api/health', (req, res) => {
+  const mongoStatus = mongoose.connection.readyState;
+  const mongoStatusText = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting'
+  }[mongoStatus] || 'unknown';
+  
   res.json({ 
     status: 'Server is running', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    mongodb: {
+      status: mongoStatusText,
+      readyState: mongoStatus
+    }
   });
 });
 
+// Test route without MongoDB dependency
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Server is responding without MongoDB',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Handle preflight requests
+app.options('*', cors());
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`MongoDB URI: ${MONGODB_URI}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🔧 Test endpoint: http://localhost:${PORT}/api/test`);
 });
