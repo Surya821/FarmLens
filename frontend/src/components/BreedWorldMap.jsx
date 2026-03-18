@@ -1,35 +1,33 @@
+import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { translations } from "../data/translations";
 
 delete L.Icon.Default.prototype._getIconUrl;
-
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-// Fix default marker icons (Leaflet bug in React)
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+// Custom blue icon for cloud-added breeds
+const cloudIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
 });
 
-// breeds with coordinates
-const breeds = [
-  // FOREIGN BREEDS
+// Hardcoded breeds with coordinates
+const staticBreeds = [
   { name: "Ayrshire", origin: "Scotland, United Kingdom", lat: 56.4907, lng: -4.2026 },
   { name: "Brown Swiss", origin: "Switzerland", lat: 46.8182, lng: 8.2275 },
   { name: "Holstein Friesian", origin: "Netherlands and Germany", lat: 52.3, lng: 7.0 },
   { name: "Jersey", origin: "Jersey, Channel Islands", lat: 49.2135, lng: -2.1312 },
   { name: "Red Dane", origin: "Denmark", lat: 56.2639, lng: 9.5018 },
-
-  // INDIAN BREEDS
   { name: "Amritmahal", origin: "Karnataka, India", lat: 15.3173, lng: 75.7139 },
   { name: "Bachaur", origin: "Bihar, India", lat: 25.0961, lng: 85.3131 },
   { name: "Bargur", origin: "Tamil Nadu, India", lat: 11.3167, lng: 77.3333 },
@@ -67,7 +65,21 @@ const breeds = [
   { name: "Shweta Kapila", origin: "Goa, India", lat: 15.2993, lng: 74.1240 }
 ];
 
-export default function WorldBreedMap() {
+export default function WorldBreedMap({ isDark, language }) {
+  const t = translations[language];
+  const [cloudBreeds, setCloudBreeds] = useState([]);
+
+  useEffect(() => {
+    fetch('http://localhost:5001/api/breeds')
+      .then(res => res.json())
+      .then(data => {
+        // Only keep DB breeds that have valid coordinates
+        const withCoords = data.filter(b => b.lat != null && b.lng != null);
+        setCloudBreeds(withCoords);
+      })
+      .catch(err => console.error('Failed to load cloud breeds for map:', err));
+  }, []);
+
   return (
     <MapContainer
       center={[20, 0]}
@@ -76,21 +88,39 @@ export default function WorldBreedMap() {
       style={{ height: "50vh", width: "100%" }}
       worldCopyJump={true}
     >
-      {/* High-quality map (no API key needed) */}
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution="&copy; OpenStreetMap contributors"
       />
 
-      {/* Breed markers */}
-      {breeds.map((b, i) => (
-        <Marker key={b.name} position={[b.lat, b.lng]}>
-        <Popup>
-          <h2 className="font-bold text-lg">{b.name}</h2>
-          <p className="text-sm text-gray-700">{b.origin}</p>
-        </Popup>
-      </Marker>
+      {/* Hardcoded breed markers */}
+      {staticBreeds.map((b) => (
+        <Marker key={`static-${b.name}`} position={[b.lat, b.lng]}>
+          <Popup>
+            <h2 className="font-bold text-lg text-gray-900">{b.name}</h2>
+            <p className="text-sm text-gray-700">
+              <strong>{t.origin}:</strong> {b.origin}
+            </p>
+          </Popup>
+        </Marker>
+      ))}
+
+      {/* Cloud (DB) breed markers in blue */}
+      {cloudBreeds.map((b) => (
+        <Marker key={`cloud-${b._id}`} position={[b.lat, b.lng]} icon={cloudIcon}>
+          <Popup>
+            <div className="min-w-[160px]">
+              {b.image && <img src={b.image} alt={b.name} className="w-full h-24 object-cover rounded-lg mb-2" />}
+              <h2 className="font-bold text-base text-gray-900">{b.name}</h2>
+              <p className="text-xs text-gray-700 mb-1">
+                <strong>{t.origin}:</strong> {b.origin?.en || ''}
+              </p>
+              {/* <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-black uppercase rounded-full tracking-widest">Cloud Added</span> */}
+            </div>
+          </Popup>
+        </Marker>
       ))}
     </MapContainer>
   );
 }
+

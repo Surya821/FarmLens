@@ -189,8 +189,20 @@ router.get('/stats', auth, async (req, res) => {
       { $group: { _id: '$gender', count: { $sum: 1 } } }
     ]);
 
+    const healthyCount = await Cattle.countDocuments({ 
+      owner: req.userId, 
+      healthStatus: { $in: ['Excellent', 'Good'] } 
+    });
+
+    const pendingCount = await Cattle.countDocuments({ 
+      owner: req.userId, 
+      healthStatus: { $in: ['Fair', 'Poor'] } 
+    });
+
     res.json({
       totalCattle,
+      healthyCount,
+      pendingCount,
       healthStats,
       genderStats
     });

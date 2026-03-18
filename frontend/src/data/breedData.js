@@ -368,8 +368,8 @@ export const breedData = {
       hi: "400-550 किलो"
     },
     milkProduction: {
-      en: "2,500-4,000 kg per lactation (can go higher in good conditions)",
-      hi: "प्रति स्तनपान 2,500-4,000 किलो (अच्छी परिस्थितियों में अधिक हो सकता है)"
+      en: "2,500-4,000 kg per lactation",
+      hi: "प्रति स्तनपान 2,500-4,000 किलो"
     }
   },
   "Hallikar": {

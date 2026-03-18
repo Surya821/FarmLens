@@ -1,189 +1,187 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { ToastContainer } from 'react-toastify';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+// Components
 import Header from './components/Header';
 import Footer from './components/Footer';
-import HomePage from './pages/HomePage';
-import BreedsPage from './pages/BreedsPage';
-import PredictPage from './pages/PredictPage';
-import DiseasePredictPage from './pages/DiseasePredictPage';
-import PrescriptionPage from './pages/PrescriptionPage';
-import BreedInfoPage from './pages/BreedInfoPage';
-import AuthPage from './pages/AuthPage';
-import UserDashboard from './pages/UserDashboard';
-import AddCattlePage from './pages/AddCattlePage';
-import CattleInfoPage from './pages/CattleInfoPage';
-import ProfilePage from './pages/ProfilePage';
+import ProtectedRoute from './components/ProtectedRoute';
+import GuestRoute from './components/GuestRoute';
+
+// Pages - Auth
+import AuthPage from './pages/auth/AuthPage';
+
+// Pages - Breeds
+import BreedsPage from './pages/breeds/BreedsPage';
+import BreedInfoPage from './pages/breeds/BreedInfoPage';
+
+// Pages - Cattle
+import AddCattlePage from './pages/cattle/AddCattlePage';
+import AllCattlePage from './pages/cattle/AllCattlePage';
+import CattleInfoPage from './pages/cattle/CattleInfoPage';
+
+// Pages - Disease
+import DiseasesPage from './pages/disease/DiseasesPage';
+import DiseaseInfoPage from './pages/disease/DiseaseInfoPage';
+import DiseasePredictPage from './pages/disease/DiseasePredictPage';
+import PrescriptionPage from './pages/disease/PrescriptionPage';
+import SkinDiseasePage from './pages/disease/SkinDiseasePage';
+
+// Pages - User
+import UserDashboard from './pages/user/UserDashboard';
+import ProfilePage from './pages/user/ProfilePage';
+import SettingsPage from './pages/user/SettingsPage';
+import DeveloperPage from './pages/user/DeveloperPage';
+import MembershipPage from './pages/user/MembershipPage';
+
+// Pages - General
+import HomePage from './pages/general/HomePage';
+import ServicesPage from './pages/general/ServicesPage';
+import PredictPage from './pages/general/PredictPage';
+import DocsPage from './pages/general/DocsPage';
+import AboutPage from './pages/general/AboutPage';
+import TermsPage from './pages/general/TermsPage';
+import PrivacyPage from './pages/general/PrivacyPage';
+import CookiePage from './pages/general/CookiePage';
+import PaymentSuccess from './pages/general/PaymentSuccess';
+
+// Admin
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminMessages from './pages/admin/AdminMessages';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminBreeds from './pages/admin/AdminBreeds';
+import AdminManageBreeds from './pages/admin/AdminManageBreeds';
+import AdminDiseases from './pages/admin/AdminDiseases';
+import AdminManageDiseases from './pages/admin/AdminManageDiseases';
+
 
 function App() {
   const [selectedBreed, setSelectedBreed] = useState(null);
-  const [isDark, setIsDark] = useState(false);
   const [language, setLanguage] = useState('en');
   const [prediction, setPrediction] = useState(null);
+  const [diseasePrediction, setDiseasePrediction] = useState(null);
+  const [skinPrediction, setSkinPrediction] = useState(null);
+  const [globalImage, setGlobalImage] = useState(null);
 
   return (
-    <AuthProvider>
-      <Router>
-        <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-          <Header 
-            isDark={isDark} 
-            setIsDark={setIsDark} 
-            language={language} 
-            setLanguage={setLanguage} 
-          />
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <AuthProvider>
+        <ThemeProvider>
+          <Router>
+            <AppContent 
+              language={language} setLanguage={setLanguage}
+              selectedBreed={selectedBreed} setSelectedBreed={setSelectedBreed}
+              prediction={prediction} setPrediction={setPrediction}
+              diseasePrediction={diseasePrediction} setDiseasePrediction={setDiseasePrediction}
+              skinPrediction={skinPrediction} setSkinPrediction={setSkinPrediction}
+              globalImage={globalImage} setGlobalImage={setGlobalImage}
+            />
+          </Router>
+        </ThemeProvider>
+      </AuthProvider>
+    </GoogleOAuthProvider>
+  );
+}
 
-          <main>
-            <Routes>
-              <Route 
-                path="/" 
-                element={
-                  <HomePage
-                    isDark={isDark}
-                    language={language}
-                    setSelectedBreed={setSelectedBreed}
-                  />
-                } 
-              />
-              
-              <Route 
-                path="/breeds" 
-                element={
-                  <BreedsPage
-                    isDark={isDark}
-                    language={language}
-                    setSelectedBreed={setSelectedBreed}
-                  />
-                } 
-              />
-              
-              <Route 
-                path="/predict" 
-                element={
-                  <PredictPage
-                    isDark={isDark}
-                    language={language}
-                    setSelectedBreed={setSelectedBreed}
-                    prediction={prediction}
-                    setPrediction={setPrediction}
-                  />
-                } 
-              />
-              
-              <Route 
-                path="/disease" 
-                element={
-                  <DiseasePredictPage
-                    isDark={isDark}
-                    language={language}
-                  />
-                } 
-              />
-              
-              {/* NEW PRESCRIPTION PAGE ROUTE */}
-              <Route 
-                path="/prescription" 
-                element={
-                  <PrescriptionPage
-                    isDark={isDark}
-                    language={language}
-                  />
-                } 
-              />
-              
-              <Route 
-                path="/breed/:breedName" 
-                element={
-                  <BreedInfoPage
-                    isDark={isDark}
-                    language={language}
-                    selectedBreed={selectedBreed}
-                    prediction={prediction}
-                  />
-                } 
-              />
-              
-              {/* Auth Routes */}
-              <Route 
-                path="/login" 
-                element={
-                  <AuthPage
-                    isDark={isDark}
-                    language={language}
-                  />
-                } 
-              />
-              
-              <Route 
-                path="/register" 
-                element={
-                  <AuthPage
-                    isDark={isDark}
-                    language={language}
-                  />
-                } 
-              />
-              
-              {/* User Routes */}
-              <Route 
-                path="/:username" 
-                element={
-                  <UserDashboard
-                    isDark={isDark}
-                    language={language}
-                  />
-                } 
-              />
-              
-              <Route 
-                path="/:username/addcattle" 
-                element={
-                  <AddCattlePage
-                    isDark={isDark}
-                    language={language}
-                  />
-                } 
-              />
-              
-              <Route 
-                path="/:username/cattleinfo/:cattleId" 
-                element={
-                  <CattleInfoPage
-                    isDark={isDark}
-                    language={language}
-                  />
-                } 
-              />
-              
-              <Route 
-                path="/:username/profile" 
-                element={
-                  <ProfilePage
-                    isDark={isDark}
-                    language={language}
-                  />
-                } 
-              />
-            </Routes>
-          </main>
+function AppContent({ 
+  language, setLanguage, 
+  selectedBreed, setSelectedBreed, prediction, setPrediction,
+  diseasePrediction, setDiseasePrediction,
+  skinPrediction, setSkinPrediction,
+  globalImage, setGlobalImage
+}) {
+  const { isDark, setIsDark } = useTheme();
+  const location = useLocation();
+  const { logout, user } = useAuth(); // Get logout and user from AuthContext
+  const isAdminPath = location.pathname.startsWith('/admin');
 
-          <Footer isDark={isDark} language={language} />
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme={isDark ? "dark" : "light"}
-          />
-        </div>
-      </Router>
-    </AuthProvider>
+  // Scroll to top on route change or reload
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
+  // Logic to clear user session when navigating between admin/user paths
+  useEffect(() => {
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    
+    if (isAdminPath && user) {
+      // If on admin path but logged in as regular user, clear user session
+      logout();
+      toast.info('Regular user session cleared for Admin access');
+    } else if (!isAdminPath && isAdmin) {
+      // If on regular path but logged in as admin, clear admin session
+      localStorage.removeItem('isAdmin');
+      toast.info('Admin session cleared for User access');
+    }
+  }, [isAdminPath, user, logout]);
+
+  return (
+    <div className="min-h-screen transition-colors duration-300">
+      {!isAdminPath && (
+        <Header
+          isDark={isDark}
+          setIsDark={setIsDark}
+          language={language}
+          setLanguage={setLanguage}
+        />
+      )}
+
+      <main>
+        <Routes>
+          <Route path="/" element={<GuestRoute><HomePage isDark={isDark} language={language} setSelectedBreed={setSelectedBreed} /></GuestRoute>} />
+          <Route path="/breeds" element={<BreedsPage isDark={isDark} language={language} setSelectedBreed={setSelectedBreed} />} />
+          <Route path="/predict" element={<ProtectedRoute language={language}><PredictPage isDark={isDark} language={language} setSelectedBreed={setSelectedBreed} prediction={prediction} setPrediction={setPrediction} setGlobalImage={setGlobalImage} /></ProtectedRoute>} />
+          <Route path="/disease" element={<ProtectedRoute language={language}><DiseasePredictPage isDark={isDark} language={language} diseasePrediction={diseasePrediction} setDiseasePrediction={setDiseasePrediction} /></ProtectedRoute>} />
+          <Route path="/services" element={<ServicesPage isDark={isDark} language={language} />} />
+          <Route path="/skin-disease" element={<ProtectedRoute language={language}><SkinDiseasePage isDark={isDark} language={language} skinPrediction={skinPrediction} setSkinPrediction={setSkinPrediction} setGlobalImage={setGlobalImage} /></ProtectedRoute>} />
+          <Route path="/prescription" element={<PrescriptionPage isDark={isDark} language={language} />} />
+          <Route path="/membership" element={<MembershipPage isDark={isDark} language={language} />} />
+          <Route path="/:username/membership" element={<MembershipPage isDark={isDark} language={language} />} />
+          <Route path="/breed/:breedName" element={<BreedInfoPage isDark={isDark} language={language} selectedBreed={selectedBreed} prediction={prediction} />} />
+          <Route path="/about" element={<AboutPage isDark={isDark} language={language} />} />
+          <Route path="/terms" element={<TermsPage isDark={isDark} language={language} />} />
+          <Route path="/privacy" element={<PrivacyPage isDark={isDark} language={language} />} />
+          <Route path="/cookies" element={<CookiePage isDark={isDark} language={language} />} />
+          <Route path="/diseases" element={<DiseasesPage isDark={isDark} language={language} />} />
+          <Route path="/disease-info/:diseaseId" element={<DiseaseInfoPage isDark={isDark} language={language} />} />
+          <Route path="/docs" element={<DocsPage isDark={isDark} language={language} />} />
+          <Route path="/payment-success" element={<ProtectedRoute language={language}><PaymentSuccess isDark={isDark} language={language} /></ProtectedRoute>} />
+          <Route path="/login" element={<AuthPage isDark={isDark} language={language} />} />
+          <Route path="/register" element={<AuthPage isDark={isDark} language={language} />} />
+          
+          {/* User Routes */}
+          <Route path="/:username" element={<ProtectedRoute language={language}><UserDashboard isDark={isDark} language={language} /></ProtectedRoute>} />
+          <Route path="/:username/addcattle" element={<ProtectedRoute language={language}><AddCattlePage isDark={isDark} language={language} prediction={prediction} diseasePrediction={diseasePrediction} skinPrediction={skinPrediction} globalImage={globalImage} /></ProtectedRoute>} />
+          <Route path="/:username/cattleinfo/:cattleId" element={<ProtectedRoute language={language}><CattleInfoPage isDark={isDark} language={language} /></ProtectedRoute>} />
+          <Route path="/:username/profile" element={<ProtectedRoute language={language}><ProfilePage isDark={isDark} language={language} /></ProtectedRoute>} />
+          <Route path="/:username/allcattles" element={<ProtectedRoute language={language}><AllCattlePage isDark={isDark} language={language} /></ProtectedRoute>} />
+          <Route path="/:username/developer" element={<ProtectedRoute language={language}><DeveloperPage isDark={isDark} language={language} /></ProtectedRoute>} />
+          <Route path="/:username/settings" element={<ProtectedRoute language={language}><SettingsPage isDark={isDark} language={language} setLanguage={setLanguage} /></ProtectedRoute>} />
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLogin isDark={isDark} />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard isDark={isDark} setIsDark={setIsDark} />} />
+          <Route path="/admin/messages" element={<AdminMessages isDark={isDark} setIsDark={setIsDark} />} />
+          <Route path="/admin/users" element={<AdminUsers isDark={isDark} setIsDark={setIsDark} />} />
+          <Route path="/admin/breeds" element={<AdminBreeds isDark={isDark} setIsDark={setIsDark} />} />
+          <Route path="/admin/manage-breeds" element={<AdminManageBreeds isDark={isDark} setIsDark={setIsDark} />} />
+          <Route path="/admin/diseases" element={<AdminDiseases isDark={isDark} setIsDark={setIsDark} />} />
+          <Route path="/admin/manage-diseases" element={<AdminManageDiseases isDark={isDark} setIsDark={setIsDark} />} />
+        </Routes>
+      </main>
+
+      {!isAdminPath && <Footer isDark={isDark} language={language} />}
+      
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        theme={isDark ? "dark" : "light"}
+      />
+    </div>
   );
 }
 

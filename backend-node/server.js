@@ -1,3 +1,6 @@
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv4first'); 
+
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -6,16 +9,25 @@ import dotenv from 'dotenv';
 // Load environment variables first
 dotenv.config();
 
+
 import authRoutes from './routes/auth.js';
 import cattleRoutes from './routes/cattle.js';
 import userRoutes from './routes/user.js';
+import adminRoutes from './routes/admin.js';
+import messageRoutes from './routes/message.js';
+import breedRoutes from './routes/breed.js';
+import taskRoutes from './routes/task.js';
+import paymentRoutes from './routes/payment.js';
+import diseaseRoutes from './routes/disease.js';
+import apiKeyRoutes from './routes/api-keys.js';
+import v1Routes from './routes/v1.js';
 
 const app = express();
 
 // Middleware
 app.use(cors({
   origin: '*', // Update this to your frontend URL in production
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
@@ -26,6 +38,14 @@ app.use(express.static('uploads'));
 app.use('/api/auth', authRoutes);
 app.use('/api/cattle', cattleRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/breeds', breedRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/diseases', diseaseRoutes);
+app.use('/api/api-keys', apiKeyRoutes);
+app.use('/api/v1', v1Routes);
 
 // MongoDB Connection with better error handling
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/farmlens';
@@ -105,7 +125,7 @@ app.get('/api/test', (req, res) => {
 // Handle preflight requests
 app.options('*', cors());
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
