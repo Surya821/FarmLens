@@ -16,6 +16,7 @@ from sklearn.exceptions import InconsistentVersionWarning
 import timm
 import tensorflow as tf
 import numpy as np
+import gdown  # Added for downloading from Google Drive
 
 
 # -----------------------------
@@ -42,15 +43,37 @@ app.add_middleware(
 )
 
 # -----------------------------
-# Verify model file exists
+# Google Drive Download Helper
 # -----------------------------
-if not os.path.exists(CHECKPOINT_PATH):
-    print(f"ERROR: Model file not found at {CHECKPOINT_PATH}")
-    sys.exit(1)
+# Replace these empty strings with your actual Google Drive URLs or File IDs.
+# For example, if your link is 'https://drive.google.com/file/d/1aBcD.../view?usp=sharing',
+# set ID or URL below. gdown works well with full sharing URLs if fuzzy=True.
 
-if not os.path.exists(RF_MODEL_PATH):
-    print(f"ERROR: RF model file not found at {RF_MODEL_PATH}")
-    sys.exit(1)
+CHECKPOINT_GDRIVE_URL = "https://drive.google.com/file/d/1QBo-o_atm1UgiFTKvkWYiDJgYTHvZikA/view?usp=sharing" 
+RF_MODEL_GDRIVE_URL = "https://drive.google.com/file/d/1aqyqDjvupC7cNOKIYb55vB6sKfesXjs_/view?usp=sharing"
+SKIN_MODEL_GDRIVE_URL = "https://drive.google.com/file/d/17hta1Yf8LyN9peIaSo365ZyHe7rDUl0m/view?usp=sharing"
+
+def download_from_gdrive(path, url, name):
+    if not os.path.exists(path):
+        if not url or url == "YOUR_MODEL_GDRIVE_LINK_HERE" or url.startswith("YOUR_"):
+            print(f"ERROR: {name} not found at {path} and no Google Drive link provided.")
+            sys.exit(1)
+        print(f"{name} not found locally. Downloading from Google Drive...")
+        try:
+            # fuzzy=True helps parsing standard Google Drive sharing links
+            gdown.download(url=url, output=path, quiet=False, fuzzy=True)
+            print(f"Successfully downloaded {name} to {path}")
+        except Exception as e:
+            print(f"ERROR failed to download {name}: {e}")
+            sys.exit(1)
+
+# -----------------------------
+# Verify model file exists (Download if missing)
+# -----------------------------
+download_from_gdrive(CHECKPOINT_PATH, CHECKPOINT_GDRIVE_URL, "Breed Model (best_model_final.pth)")
+download_from_gdrive(RF_MODEL_PATH, RF_MODEL_GDRIVE_URL, "Random Forest Model (random_forest_model.pkl)")
+download_from_gdrive(SKIN_MODEL_PATH, SKIN_MODEL_GDRIVE_URL, "Skin Disease Model (best_densenet_cattle.keras)")
+
 
 # -----------------------------
 # Load Image Model (Breed Recognition) - safer torch.load
