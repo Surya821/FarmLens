@@ -1,5 +1,4 @@
-import dns from 'dns';
-dns.setDefaultResultOrder('ipv4first'); 
+
 
 import express from 'express';
 import mongoose from 'mongoose';
@@ -47,16 +46,17 @@ app.use('/api/diseases', diseaseRoutes);
 app.use('/api/api-keys', apiKeyRoutes);
 app.use('/api/v1', v1Routes);
 
-// MongoDB Connection with better error handling
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/farmlens';
+// MongoDB Connection — requires MONGODB_URI to be set in .env (Atlas)
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI is not set. Please configure your MongoDB Atlas connection string in .env');
+  process.exit(1);
+}
 
-// MongoDB connection options
+// MongoDB connection options (Atlas-compatible)
 const mongooseOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds instead of 30
-  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-  family: 4 // Use IPv4, skip trying IPv6
+  serverSelectionTimeoutMS: 10000, // Timeout after 10 seconds
+  socketTimeoutMS: 45000,         // Close sockets after 45 seconds of inactivity
 };
 
 // Function to connect to MongoDB
@@ -125,10 +125,12 @@ app.get('/api/test', (req, res) => {
 // Handle preflight requests
 app.options('*', cors());
 
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🔧 Test endpoint: http://localhost:${PORT}/api/test`);
-});
+const PORT = process.env.PORT || 5000;
+// app.listen(PORT, () => {
+//   console.log(`🚀 Server running on port ${PORT}`);
+//   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+//   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+//   console.log(`🔧 Test endpoint: http://localhost:${PORT}/api/test`);
+// });
+
+export default app;
