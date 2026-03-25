@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
 // Components
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -178,8 +179,7 @@ function AppContent({
       <Toaster 
         position="top-right"
         richColors
-        expand={false}
-        theme={isDark ? "dark" : "light"}
+        closeButton
       />
     </div>
   );
