@@ -109,7 +109,7 @@ function ProfilePage({ isDark, language }) {
         <div className="flex items-center justify-between mb-10">
           <button
             onClick={() => navigate(-1)}
-            className="group flex items-center gap-2 px-5 py-2.5 rounded-2xl transition-all bg-[var(--card)] text-[var(--muted)] hover:text-[var(--accent)] border border-[var(--border)] shadow-sm"
+            className="mb-8 hidden sm:flex items-center gap-2 text-[var(--muted)] hover:text-[var(--accent)] font-bold transition-colors group"
           >
             <i className="fa-solid fa-arrow-left transition-transform group-hover:-translate-x-1"></i>
             <span className="font-black text-xs uppercase tracking-widest">{t.back}</span>

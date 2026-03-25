@@ -139,7 +139,7 @@ function AppContent({
         />
       )}
 
-      <main>
+      <main className={!isAdminPath ? "pt-[72px]" : ""}>
         <Routes>
           <Route path="/" element={<GuestRoute><HomePage isDark={isDark} language={language} setSelectedBreed={setSelectedBreed} /></GuestRoute>} />
           <Route path="/breeds" element={<BreedsPage isDark={isDark} language={language} setSelectedBreed={setSelectedBreed} />} />

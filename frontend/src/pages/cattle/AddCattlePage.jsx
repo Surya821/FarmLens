@@ -122,7 +122,7 @@ function AddCattlePage({ isDark, language, prediction, diseasePrediction, skinPr
         <div className="flex items-center justify-between mb-10">
           <button
             onClick={() => navigate(-1)}
-            className="mb-8 group flex items-center gap-2 text-[var(--muted)] hover:text-[var(--accent)] font-bold transition-colors"
+            className="mb-8 hidden sm:flex items-center gap-2 text-[var(--muted)] hover:text-[var(--accent)] font-bold transition-colors group"
           >
             <div className="w-8 h-8 rounded-full bg-[var(--card)] border border-[var(--border)] flex items-center justify-center group-hover:border-[var(--accent)] transition-all">
               <i className="fa-solid fa-arrow-left text-xs transition-transform group-hover:-translate-x-1"></i>

@@ -108,7 +108,7 @@ function ChatbotPage({ isDark, language }) {
             </h1>
             <p className="text-xs font-bold text-[var(--muted)] opacity-60 uppercase tracking-[0.2em] mt-1">Specialized Cattle Assistant</p>
           </div>
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-[var(--card)] border border-[var(--border)] flex items-center justify-center hover:border-[var(--accent)] transition-all">
+          <button onClick={() => navigate(-1)} className="hidden sm:flex w-10 h-10 rounded-full bg-[var(--card)] border border-[var(--border)] items-center justify-center hover:border-[var(--accent)] transition-all">
             <i className="fa-solid fa-arrow-left text-xs"></i>
           </button>
         </div>

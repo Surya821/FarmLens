@@ -211,7 +211,7 @@ function BreedInfoPage({ isDark, language, selectedBreed, prediction }) {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-[var(--muted)] hover:text-[var(--accent)] font-extrabold transition-colors"
+            className="mb-8 hidden sm:flex items-center gap-2 text-[var(--muted)] hover:text-[var(--accent)] font-bold transition-colors group"
           >
             <i className="fa-solid fa-arrow-left"></i> {t.back}
           </button>

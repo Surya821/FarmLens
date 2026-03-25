@@ -46,7 +46,7 @@ function Header({ isDark, setIsDark, language, setLanguage }) {
   const atHome = location.pathname === '/';
 
   return (
-    <nav className="navbar px-4 py-3">
+    <nav className="farmlens-header px-4 py-3">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-5 w-full">
         {/* Logo */}
         <div
@@ -253,40 +253,51 @@ function Header({ isDark, setIsDark, language, setLanguage }) {
         </div>
       </div>
 
-      {/* Mobile Menu Backdrop */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-md animate-fade-in" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="absolute right-0 top-0 bottom-0 w-[80%] max-w-[320px] bg-[var(--card)] p-6 shadow-2xl overflow-y-auto animate-slide-in-right" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-8">
-              <span className="text-xl font-black text-[var(--accent)]">FarmLens Menu</span>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="w-10 h-10 rounded-full bg-[var(--surface)] flex items-center justify-center"><X size={20} /></button>
-            </div>
+      {/* Mobile Menu Backdrop & Drawer */}
+      <div 
+        className={`lg:hidden fixed inset-0 z-[6000] bg-black/60 backdrop-blur-md transition-all duration-500 ease-in-out ${
+          isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setIsMobileMenuOpen(false)}
+      >
+        <div 
+          className={`absolute right-0 top-0 bottom-0 w-[80%] max-w-[320px] bg-[var(--card)] p-6 shadow-2xl overflow-y-auto transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${
+            isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between mb-8">
+            <span className="text-xl font-black text-[var(--accent)]">FarmLens Menu</span>
+            <button onClick={() => setIsMobileMenuOpen(false)} className="w-10 h-10 rounded-full bg-[var(--surface)] flex items-center justify-center border border-[var(--border)]"><X size={20} /></button>
+          </div>
 
-            <div className="space-y-2">
-               <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted)] opacity-50">Exploration</p>
-               <button onClick={() => { navigate('/disease'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Stethoscope size={20} /> {t.diseasePredict}</button>
-               <button onClick={() => { navigate('/skin-disease'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Microscope size={20} /> {t.skinDiseasePredict}</button>
-               <button onClick={() => { navigate('/predict'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Camera size={20} /> {t.goToPredict}</button>
-               <button onClick={() => { navigate('/breeds'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><BookOpen size={20} /> {t.breeds}</button>
-               <button onClick={() => { navigate('/diseases'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Layers size={20} /> {t.diseases}</button>
+          <div className="space-y-1">
+             <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted)] opacity-50">Exploration</p>
+             <button onClick={() => { navigate('/disease'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Stethoscope size={20} /> {t.diseasePredict}</button>
+             <button onClick={() => { navigate('/skin-disease'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Microscope size={20} /> {t.skinDiseasePredict}</button>
+             <button onClick={() => { navigate('/predict'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Camera size={20} /> {t.goToPredict}</button>
+             <button onClick={() => { navigate('/breeds'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><BookOpen size={20} /> {t.breeds}</button>
+             <button onClick={() => { navigate('/diseases'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Layers size={20} /> {t.diseases}</button>
 
-               <div className="h-[1px] bg-[var(--border)] my-4"></div>
-               <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted)] opacity-50">Main Links</p>
-               <button onClick={() => { navigate('/membership'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Tag size={20} /> {t.pricing}</button>
-               <button onClick={() => { navigate('/about'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Info size={20} /> {t.about}</button>
-               <button onClick={() => { navigate('/contact'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Mail size={20} /> {language === 'en' ? 'Contact Us' : 'संपर्क करें'}</button>
+             <div className="h-[1px] bg-[var(--border)] my-4 mx-4"></div>
+             <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted)] opacity-50">Main Links</p>
+             <button onClick={() => { navigate('/membership'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Tag size={20} /> {t.pricing}</button>
+             <button onClick={() => { navigate('/about'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Info size={20} /> {t.about}</button>
+             <button onClick={() => { navigate('/contact'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Mail size={20} /> {language === 'en' ? 'Contact Us' : 'संपर्क करें'}</button>
 
-               <div className="h-[1px] bg-[var(--border)] my-4"></div>
-               <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted)] opacity-50">Settings & Language</p>
-               <div className="flex gap-2 p-2">
-                  <button onClick={() => setLanguage('en')} className={`flex-1 py-3 rounded-xl font-black text-sm ${language === 'en' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface)] border border-[var(--border)]'}`}>EN</button>
-                  <button onClick={() => setLanguage('hi')} className={`flex-1 py-3 rounded-xl font-black text-sm ${language === 'hi' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface)] border border-[var(--border)]'}`}>हिं</button>
-               </div>
-               <button onClick={() => { setIsDark(!isDark); setIsMobileMenuOpen(false); }} className="mobile-nav-item mt-2 w-full justify-center bg-[var(--surface)] border border-[var(--border)]">{isDark ? <Sun size={20} /> : <Moon size={20} />} {t.toggleTheme}</button>
-            </div>
+             <div className="h-[1px] bg-[var(--border)] my-4 mx-4"></div>
+             <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted)] opacity-50">Settings & Language</p>
+             <div className="flex gap-2 p-2">
+                <button onClick={() => setLanguage('en')} className={`flex-1 py-3 rounded-xl font-black text-sm border-2 transition-all ${language === 'en' ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-lg shadow-green-500/20' : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted)]'}`}>EN</button>
+                <button onClick={() => setLanguage('hi')} className={`flex-1 py-3 rounded-xl font-black text-sm border-2 transition-all ${language === 'hi' ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-lg shadow-green-500/20' : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted)]'}`}>हिं</button>
+             </div>
+             <button onClick={() => { setIsDark(!isDark); setIsMobileMenuOpen(false); }} className="mobile-nav-item mt-2 w-full justify-center bg-[var(--surface)] border border-[var(--border)] shadow-sm">
+                {isDark ? <Sun size={20} className="text-yellow-500" /> : <Moon size={20} className="text-blue-500" />} 
+                <span className="font-black ml-2">{t.toggleTheme}</span>
+             </button>
           </div>
         </div>
-      )}
+      </div>
     </nav>
   );
 }

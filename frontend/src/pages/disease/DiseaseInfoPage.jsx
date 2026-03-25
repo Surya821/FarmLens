@@ -73,7 +73,7 @@ function DiseaseInfoPage({ isDark, language }) {
         <div className="absolute top-24 left-6 right-6 md:left-10 md:right-10 flex justify-between items-center z-20">
           <button 
             onClick={() => navigate(-1)}
-            className="w-12 h-12 rounded-2xl bg-black/20 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white hover:bg-red-500 transition-all shadow-2xl"
+            className="hidden sm:flex w-12 h-12 rounded-2xl bg-black/20 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white hover:bg-red-500 transition-all shadow-2xl"
           >
             <ChevronLeft size={24} />
           </button>

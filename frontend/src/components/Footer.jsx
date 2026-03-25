@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { translations } from '../data/translations';
 import logo from '../assets/farmlens-logo (1).png';
-import { Leaf, Github, Twitter, Mail, Phone, PhoneCall, ChevronDown, Book } from 'lucide-react';
+import { Leaf, Github, Twitter, Mail, Phone, PhoneCall, ChevronDown, Book, Linkedin } from 'lucide-react';
 
 function Footer({ isDark, language }) {
   const navigate = useNavigate();
@@ -30,11 +30,11 @@ function Footer({ isDark, language }) {
                 : 'बेहतर पशु स्वास्थ्य और प्रबंधन के लिए अत्याधुनिक AI तकनीक के साथ पशुधन मालिकों को सशक्त बनाना।'}
             </p>
             <div className="flex gap-3">
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[var(--card)] border border-[var(--border)] rounded-xl flex items-center justify-center text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-all">
+              <a href="https://github.com/Surya821/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[var(--card)] border border-[var(--border)] rounded-xl flex items-center justify-center text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-all">
                 <Github size={18} />
               </a>
-              <a href="#" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[var(--card)] border border-[var(--border)] rounded-xl flex items-center justify-center text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-all">
-                <Twitter size={18} />
+              <a href="https://www.linkedin.com/in/surya-pratap-singh1/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[var(--card)] border border-[var(--border)] rounded-xl flex items-center justify-center text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-all">
+                <Linkedin size={18} />
               </a>
             </div>
           </div>
