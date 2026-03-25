@@ -34,7 +34,7 @@ const UsageLimitModal = ({ isOpen, onClose, language = 'en' }) => {
             }}
             className="w-full py-4 bg-[var(--accent)] text-white rounded-2xl font-black shadow-xl shadow-green-500/20 hover:scale-[1.02] active:scale-95 transition-all"
           >
-            {language === 'en' ? 'Get Unlimited Scans' : 'असीमित स्कैन प्राप्त करें'}
+            {language === 'en' ? 'Get More Scans' : 'अधिक स्कैन प्राप्त करें'}
           </button>
           <button
             onClick={onClose}
