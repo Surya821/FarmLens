@@ -5,6 +5,8 @@ import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
+import { useNavigate } from 'react-router-dom';
+
 // Components
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -48,6 +50,8 @@ import TermsPage from './pages/general/TermsPage';
 import PrivacyPage from './pages/general/PrivacyPage';
 import CookiePage from './pages/general/CookiePage';
 import PaymentSuccess from './pages/general/PaymentSuccess';
+import ChatbotWidget from './components/ChatbotWidget.jsx';
+import ContactPage from './pages/general/ContactPage'; // Added ContactPage import
 
 // Admin
 import AdminLogin from './pages/admin/AdminLogin';
@@ -67,6 +71,7 @@ function App() {
   const [diseasePrediction, setDiseasePrediction] = useState(null);
   const [skinPrediction, setSkinPrediction] = useState(null);
   const [globalImage, setGlobalImage] = useState(null);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
@@ -80,6 +85,7 @@ function App() {
               diseasePrediction={diseasePrediction} setDiseasePrediction={setDiseasePrediction}
               skinPrediction={skinPrediction} setSkinPrediction={setSkinPrediction}
               globalImage={globalImage} setGlobalImage={setGlobalImage}
+              isChatbotOpen={isChatbotOpen} setIsChatbotOpen={setIsChatbotOpen}
             />
           </Router>
         </ThemeProvider>
@@ -93,10 +99,12 @@ function AppContent({
   selectedBreed, setSelectedBreed, prediction, setPrediction,
   diseasePrediction, setDiseasePrediction,
   skinPrediction, setSkinPrediction,
-  globalImage, setGlobalImage
+  globalImage, setGlobalImage,
+  isChatbotOpen, setIsChatbotOpen
 }) {
   const { isDark, setIsDark } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   const { logout, user, showLimitModal, triggerLimitModal } = useAuth(); // Get logout and user from AuthContext
   const isAdminPath = location.pathname.startsWith('/admin');
 
@@ -153,6 +161,7 @@ function AppContent({
           <Route path="/payment-success" element={<ProtectedRoute language={language}><PaymentSuccess isDark={isDark} language={language} /></ProtectedRoute>} />
           <Route path="/login" element={<AuthPage isDark={isDark} language={language} />} />
           <Route path="/register" element={<AuthPage isDark={isDark} language={language} />} />
+          <Route path="/contact" element={<ContactPage isDark={isDark} language={language} />} /> {/* Added ContactPage route */}
           
           {/* User Routes */}
           <Route path="/:username" element={<ProtectedRoute language={language}><UserDashboard isDark={isDark} language={language} /></ProtectedRoute>} />
@@ -164,14 +173,14 @@ function AppContent({
           <Route path="/:username/settings" element={<ProtectedRoute language={language}><SettingsPage isDark={isDark} language={language} setLanguage={setLanguage} /></ProtectedRoute>} />
 
           {/* Admin Routes */}
-          <Route path="/admin" element={<AdminLogin isDark={isDark} />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard isDark={isDark} setIsDark={setIsDark} />} />
-          <Route path="/admin/messages" element={<AdminMessages isDark={isDark} setIsDark={setIsDark} />} />
-          <Route path="/admin/users" element={<AdminUsers isDark={isDark} setIsDark={setIsDark} />} />
-          <Route path="/admin/breeds" element={<AdminBreeds isDark={isDark} setIsDark={setIsDark} />} />
-          <Route path="/admin/manage-breeds" element={<AdminManageBreeds isDark={isDark} setIsDark={setIsDark} />} />
-          <Route path="/admin/diseases" element={<AdminDiseases isDark={isDark} setIsDark={setIsDark} />} />
-          <Route path="/admin/manage-diseases" element={<AdminManageDiseases isDark={isDark} setIsDark={setIsDark} />} />
+          <Route path="/admin" element={<AdminLogin isDark={isDark} language={language} />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard isDark={isDark} setIsDark={setIsDark} language={language} />} />
+          <Route path="/admin/messages" element={<AdminMessages isDark={isDark} setIsDark={setIsDark} language={language} />} />
+          <Route path="/admin/users" element={<AdminUsers isDark={isDark} setIsDark={setIsDark} language={language} />} />
+          <Route path="/admin/breeds" element={<AdminBreeds isDark={isDark} setIsDark={setIsDark} language={language} />} />
+          <Route path="/admin/manage-breeds" element={<AdminManageBreeds isDark={isDark} setIsDark={setIsDark} language={language} />} />
+          <Route path="/admin/diseases" element={<AdminDiseases isDark={isDark} setIsDark={setIsDark} language={language} />} />
+          <Route path="/admin/manage-diseases" element={<AdminManageDiseases isDark={isDark} setIsDark={setIsDark} language={language} />} />
         </Routes>
       </main>
 
@@ -183,6 +192,31 @@ function AppContent({
         onClose={() => triggerLimitModal(false)} 
         language={language}
       />
+
+      {/* Global AI Chatbot Button & Widget */}
+      {!isAdminPath && (
+        <>
+          <ChatbotWidget 
+            isOpen={isChatbotOpen} 
+            onClose={() => setIsChatbotOpen(false)} 
+            isDark={isDark} 
+            language={language} 
+          />
+          {!isChatbotOpen && (
+            <button
+              onClick={() => setIsChatbotOpen(true)}
+              className="fixed bottom-8 right-8 z-50 w-16 h-16 bg-[var(--accent)] text-white rounded-full shadow-2xl shadow-green-500/40 hover:scale-110 active:scale-95 transition-all flex items-center justify-center group"
+              title="Ask FarmLens AI"
+            >
+              <div className="absolute inset-0 bg-white/20 rounded-full animate-ping opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <i className="fa-solid fa-robot text-2xl"></i>
+              <span className="absolute right-20 px-4 py-2 bg-[var(--card)] border border-[var(--border)] text-[var(--accent)] text-xs font-black rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl">
+                {language === 'en' ? 'Ask FarmLens AI' : 'एआई से पूछें'}
+              </span>
+            </button>
+          )}
+        </>
+      )}
 
       <Toaster 
         position="top-right"

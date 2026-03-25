@@ -5,12 +5,13 @@ import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Clock, CheckCircle, Trash2, Search, AlertTriangle } from 'lucide-react';
 import AdminNavbar from './AdminNavbar';
 
-function AdminMessages({ isDark, setIsDark }) {
+function AdminMessages({ isDark, setIsDark, language }) {
   const [messages, setMessages] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [bulkLoading, setBulkLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,6 +24,7 @@ function AdminMessages({ isDark, setIsDark }) {
 
   const fetchMessages = async () => {
     try {
+      setLoading(true);
       const response = await fetch(`${API_BASE}/api/messages`);
       if (!response.ok) throw new Error(`Status: ${response.status}`);
       const data = await response.json();
@@ -36,7 +38,9 @@ function AdminMessages({ isDark, setIsDark }) {
 
   const markAsRead = async (id) => {
     try {
-      const res = await fetch(`${API_BASE}/api/messages/${id}/read`, { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/messages/${id}/read`, { 
+        method: 'POST'
+      });
       if (!res.ok) throw new Error('Failed');
       setMessages(prev => prev.map(m => m._id === id ? { ...m, status: 'read' } : m));
     } catch (error) {
@@ -45,10 +49,42 @@ function AdminMessages({ isDark, setIsDark }) {
     }
   };
 
+  const markAllAsRead = async () => {
+    if (bulkLoading) return;
+    setBulkLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/messages/read-all`, { method: 'POST' });
+      if (res.ok) {
+        setMessages(prev => prev.map(m => ({ ...m, status: 'read' })));
+      }
+    } catch (error) {
+      console.error('Bulk read error:', error);
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const deleteReadMessages = async () => {
+    if (bulkLoading) return;
+    setBulkLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/messages/delete-read`, { method: 'DELETE' });
+      if (res.ok) {
+        setMessages(prev => prev.filter(m => m.status !== 'read'));
+      }
+    } catch (error) {
+      console.error('Bulk delete error:', error);
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   const deleteMessage = async (id) => {
     setDeletingId(id);
     try {
-      const res = await fetch(`${API_BASE}/api/messages/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/api/messages/${id}`, { 
+        method: 'DELETE'
+      });
       if (!res.ok) throw new Error('Failed');
       setMessages(prev => prev.filter(m => m._id !== id));
       setConfirmDelete(null);
@@ -66,6 +102,7 @@ function AdminMessages({ isDark, setIsDark }) {
   );
 
   const unreadCount = messages.filter(m => m.status === 'unread').length;
+  const readCount = messages.filter(m => m.status === 'read').length;
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-[#0a0f0d]' : 'bg-[#f0faf5]'}`}>
@@ -110,12 +147,28 @@ function AdminMessages({ isDark, setIsDark }) {
                 : 'All caught up'} · {messages.length} total
             </p>
           </div>
+          
+          <div className="flex items-center gap-3">
+            <button
+              onClick={markAllAsRead}
+              disabled={bulkLoading || unreadCount === 0}
+              className="px-4 py-2 bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-green-500 hover:text-white transition-all disabled:opacity-50"
+            >
+              Mark All Read
+            </button>
+            <button
+              onClick={deleteReadMessages}
+              disabled={bulkLoading || readCount === 0}
+              className="px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+            >
+              Delete Read
+            </button>
+          </div>
         </div>
 
         {/* Search */}
         <div className="relative mb-6 sm:mb-8 group">
           <div className="absolute inset-y-0 left-4 sm:left-6 flex items-center text-[var(--muted)] group-focus-within:text-green-500 transition-colors">
-
             <Search size={20} />
           </div>
           <input
@@ -156,20 +209,22 @@ function AdminMessages({ isDark, setIsDark }) {
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-                        <h3 className="text-base sm:text-lg font-bold truncate">{msg.email}</h3>
+                      <div className="flex items-center gap-3 mb-1">
+                        <h4 className="font-black text-lg truncate">{msg.email}</h4>
                         {msg.status === 'unread' && (
-                          <span className="px-2 sm:px-3 py-0.5 bg-green-500 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-full flex-shrink-0">
-                            New
+                          <span className="px-2 py-0.5 bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-wider rounded-md border border-red-500/20">
+                            Unread
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-black text-[var(--muted)] uppercase tracking-widest mb-3 sm:mb-4">
-                        <Clock size={12} /> {new Date(msg.createdAt).toLocaleString()}
+                      <div className="mt-4">
+                        <p className="text-[14px] leading-relaxed font-bold text-[var(--text)] whitespace-pre-wrap">
+                          {msg.content}
+                        </p>
                       </div>
-                      <p className="text-sm sm:text-base text-[var(--text)] font-medium leading-relaxed bg-[var(--surface)] px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl border border-[var(--border)]">
-                        {msg.content}
-                      </p>
+                      <div className="mt-4 flex items-center gap-2 text-[10px] font-black text-[var(--muted)] uppercase tracking-widest opacity-60">
+                         <Clock size={12} /> {new Date(msg.createdAt).toLocaleString()}
+                      </div>
                     </div>
                   </div>
 
@@ -180,7 +235,6 @@ function AdminMessages({ isDark, setIsDark }) {
                         onClick={() => markAsRead(msg._id)}
                         className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 bg-green-500 text-white text-xs sm:text-sm font-black rounded-xl sm:rounded-2xl shadow-lg shadow-green-500/20 hover:scale-105 active:scale-95 transition-all w-full md:w-auto"
                       >
-
                         <CheckCircle size={16} /> Mark Read
                       </button>
                     )}
@@ -191,7 +245,6 @@ function AdminMessages({ isDark, setIsDark }) {
                     >
                       <Trash2 size={18} />
                     </button>
-
                   </div>
                 </div>
               </div>

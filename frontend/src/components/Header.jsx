@@ -1,4 +1,4 @@
-import { Moon, Sun, Globe, LogIn, User, LogOut, Menu, X, Home, ChevronDown, Leaf, Layers, Info, BookOpen, Stethoscope, Camera, Tag, Microscope, Terminal, Book, Settings } from "lucide-react";
+import { Moon, Sun, Globe, LogIn, User, LogOut, Mail, Menu, X, Home, ChevronDown, Leaf, Layers, Info, BookOpen, Stethoscope, Camera, Tag, Microscope, Terminal, Book, Settings, LifeBuoy, FileText } from "lucide-react";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/farmlens-logo (1).png'
@@ -10,20 +10,18 @@ function Header({ isDark, setIsDark, language, setLanguage }) {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null); // 'services', 'encyclopedia', 'resources', 'company'
   const dropdownRef = useRef(null);
   const t = translations[language];
 
-  // Scroll to top whenever the route changes
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
+        setActiveDropdown(null);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -40,21 +38,11 @@ function Header({ isDark, setIsDark, language, setLanguage }) {
     setIsMobileMenuOpen(false);
   };
 
-  const handleDashboardClick = () => {
-    if (atDashboard) {
-      navigate('/');
-    } else {
-      navigate(`/${user.username}`);
-    }
-    setIsMobileMenuOpen(false);
-  };
-
   const handleHomeClick = () => {
     navigate('/');
     setIsMobileMenuOpen(false);
   };
 
-  const atDashboard = user && location.pathname === `/${user.username}`;
   const atHome = location.pathname === '/';
 
   return (
@@ -79,95 +67,74 @@ function Header({ isDark, setIsDark, language, setLanguage }) {
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden lg:flex flex-1 items-center justify-center gap-2">
-          {/* Services Dropdown */}
+        <div className="hidden lg:flex flex-1 items-center justify-center gap-2" ref={dropdownRef}>
+          
+          {/* 1. Services Dropdown */}
           <div
             className="relative"
-            ref={dropdownRef}
-            onMouseEnter={() => setIsDropdownOpen(true)}
-            onMouseLeave={() => setIsDropdownOpen(false)}
+            onMouseEnter={() => setActiveDropdown('services')}
+            onMouseLeave={() => setActiveDropdown(null)}
           >
             <button
-              onClick={() => navigate('/services')}
-              className={`nav-link px-4 py-2 rounded-xl transition-colors ${location.pathname === '/services' || isDropdownOpen ? 'bg-[var(--accent-light)] text-[var(--accent)]' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+              className={`nav-link px-4 py-2 rounded-xl transition-colors ${activeDropdown === 'services' ? 'bg-[var(--accent-light)] text-[var(--accent)]' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
             >
               <Layers size={16} />
-              <span className="font-bold">{t.services}</span>
-              <ChevronDown
-                size={14}
-                className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
-                onClick={(e) => { e.stopPropagation(); setIsDropdownOpen(!isDropdownOpen); }}
-              />
+              <span className="font-bold">{language === 'en' ? 'Services' : 'सेवाएं'}</span>
+              <ChevronDown size={14} className={`transition-transform duration-200 ${activeDropdown === 'services' ? 'rotate-180' : ''}`} />
             </button>
 
-            {isDropdownOpen && (
+            {activeDropdown === 'services' && (
               <div className="absolute top-full left-0 pt-2 min-w-[280px] z-[150]">
                 <div className="dropdown-menu-new animate-fade-in shadow-xl">
-                  <button
-                    onClick={() => { navigate('/disease'); setIsDropdownOpen(false); }}
-                    className="dropdown-item-new"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-                      <Stethoscope size={16} />
-                    </div>
+                  <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted)] opacity-50">Analysis Tools</p>
+                  <button onClick={() => { navigate('/disease'); setActiveDropdown(null); }} className="dropdown-item-new">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500"><Stethoscope size={16} /></div>
                     <span>{t.diseasePredict}</span>
                   </button>
-                  <button
-                    onClick={() => { navigate('/skin-disease'); setIsDropdownOpen(false); }}
-                    className="dropdown-item-new"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500">
-                      <Microscope size={16} />
-                    </div>
+                  <button onClick={() => { navigate('/skin-disease'); setActiveDropdown(null); }} className="dropdown-item-new">
+                    <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500"><Microscope size={16} /></div>
                     <span>{t.skinDiseasePredict}</span>
                   </button>
-                  <button
-                    onClick={() => { navigate('/predict'); setIsDropdownOpen(false); }}
-                    className="dropdown-item-new"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500">
-                      <Camera size={16} />
-                    </div>
+                  <button onClick={() => { navigate('/predict'); setActiveDropdown(null); }} className="dropdown-item-new">
+                    <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500"><Camera size={16} /></div>
                     <span>{t.goToPredict}</span>
-                  </button>
-                  <div className="h-[1px] bg-[var(--border)] my-1"></div>
-                  <button
-                    onClick={() => { navigate('/docs'); setIsDropdownOpen(false); }}
-                    className="dropdown-item-new group/btn"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/5 flex items-center justify-center text-[var(--accent)] group-hover/btn:bg-[var(--accent)] group-hover/btn:text-white transition-all">
-                      <Book size={14} />
-                    </div>
-                    <span className="font-bold text-[var(--accent)]">{language === 'en' ? 'Guides & Documentation' : 'दस्तावेज़ और गाइड'}</span>
                   </button>
                 </div>
               </div>
             )}
           </div>
-          <button
-            onClick={() => navigate('/breeds')}
-            className={`nav-link px-4 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 ${location.pathname === '/breeds' ? 'text-[var(--accent)]' : ''}`}
-          >
-            <BookOpen size={16} />
-            <span className="font-bold">{t.breeds}</span>
-          </button>
 
-          <button
-            onClick={() => navigate('/diseases')}
-            className={`nav-link px-4 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 ${location.pathname === '/diseases' ? 'text-[var(--accent)]' : ''}`}
+          {/* 1.5. Encyclopedia Dropdown */}
+          <div
+            className="relative"
+            onMouseEnter={() => setActiveDropdown('encyclopedia')}
+            onMouseLeave={() => setActiveDropdown(null)}
           >
-            <Microscope size={16} />
-            <span className="font-bold">{t.diseases}</span>
-          </button>
+            <button
+              className={`nav-link px-4 py-2 rounded-xl transition-colors ${activeDropdown === 'encyclopedia' ? 'bg-[var(--accent-light)] text-[var(--accent)]' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+            >
+              <BookOpen size={16} />
+              <span className="font-bold">{language === 'en' ? 'Encyclopedia' : 'कोश'}</span>
+              <ChevronDown size={14} className={`transition-transform duration-200 ${activeDropdown === 'encyclopedia' ? 'rotate-180' : ''}`} />
+            </button>
 
-          <button
-            onClick={() => navigate('/about')}
-            className={`nav-link px-4 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 ${location.pathname === '/about' ? 'text-[var(--accent)]' : ''}`}
-          >
-            <Info size={16} />
-            <span className="font-bold">{t.about}</span>
-          </button>
+            {activeDropdown === 'encyclopedia' && (
+              <div className="absolute top-full left-0 pt-2 min-w-[200px] z-[150]">
+                <div className="dropdown-menu-new animate-fade-in shadow-xl">
+                  <button onClick={() => { navigate('/breeds'); setActiveDropdown(null); }} className="dropdown-item-new">
+                    <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500"><BookOpen size={16} /></div>
+                    <span>{t.breeds}</span>
+                  </button>
+                  <button onClick={() => { navigate('/diseases'); setActiveDropdown(null); }} className="dropdown-item-new">
+                    <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-500"><Microscope size={16} /></div>
+                    <span>{t.diseases}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
+          {/* 2. Pricing - Direct Link */}
           <button
             onClick={() => navigate('/membership')}
             className={`nav-link px-4 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 ${location.pathname === '/membership' ? 'text-[var(--accent)]' : ''}`}
@@ -176,75 +143,109 @@ function Header({ isDark, setIsDark, language, setLanguage }) {
             <span className="font-bold">{t.pricing}</span>
           </button>
 
-          {user && (
+          {/* 3. Resources Dropdown */}
+          <div
+            className="relative"
+            onMouseEnter={() => setActiveDropdown('resources')}
+            onMouseLeave={() => setActiveDropdown(null)}
+          >
             <button
-              onClick={() => navigate(`/${user.username}/developer`)}
-              className={`nav-link px-4 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 ${location.pathname.includes('/developer') ? 'text-[var(--accent)]' : ''}`}
+              className={`nav-link px-4 py-2 rounded-xl transition-colors ${activeDropdown === 'resources' ? 'bg-[var(--accent-light)] text-[var(--accent)]' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
             >
-              <Terminal size={16} />
-              <span className="font-bold">{language === 'en' ? 'API' : 'एपीआई'}</span>
+              <Book size={16} />
+              <span className="font-bold">{language === 'en' ? 'Resources' : 'संसाधन'}</span>
+              <ChevronDown size={14} className={`transition-transform duration-200 ${activeDropdown === 'resources' ? 'rotate-180' : ''}`} />
             </button>
-          )}
+
+            {activeDropdown === 'resources' && (
+              <div className="absolute top-full left-0 pt-2 min-w-[240px] z-[150]">
+                <div className="dropdown-menu-new animate-fade-in shadow-xl">
+                  <button onClick={() => { navigate('/guide'); setActiveDropdown(null); }} className="dropdown-item-new">
+                    <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500"><FileText size={16} /></div>
+                    <span>{language === 'en' ? 'User Guide' : 'उपयोगकर्ता गाइड'}</span>
+                  </button>
+                  <button onClick={() => { navigate('/docs'); setActiveDropdown(null); }} className="dropdown-item-new">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500"><Book size={16} /></div>
+                    <span>{language === 'en' ? 'Documentation' : 'दस्तावेज़'}</span>
+                  </button>
+                  {user && (
+                    <button onClick={() => { navigate(`/${user.username}/developer`); setActiveDropdown(null); }} className="dropdown-item-new">
+                      <div className="w-8 h-8 rounded-lg bg-slate-500/10 flex items-center justify-center text-slate-500"><Terminal size={16} /></div>
+                      <span>{language === 'en' ? 'Developer API' : 'एपीआई'}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 4. Company Dropdown */}
+          <div
+            className="relative"
+            onMouseEnter={() => setActiveDropdown('company')}
+            onMouseLeave={() => setActiveDropdown(null)}
+          >
+            <button
+              className={`nav-link px-4 py-2 rounded-xl transition-colors ${activeDropdown === 'company' ? 'bg-[var(--accent-light)] text-[var(--accent)]' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+            >
+              <Info size={16} />
+              <span className="font-bold">{language === 'en' ? 'Company' : 'कंपनी'}</span>
+              <ChevronDown size={14} className={`transition-transform duration-200 ${activeDropdown === 'company' ? 'rotate-180' : ''}`} />
+            </button>
+
+            {activeDropdown === 'company' && (
+              <div className="absolute top-full left-0 pt-2 min-w-[200px] z-[150]">
+                <div className="dropdown-menu-new animate-fade-in shadow-xl">
+                  <button onClick={() => { navigate('/about'); setActiveDropdown(null); }} className="dropdown-item-new">
+                    <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500"><Info size={16} /></div>
+                    <span>{t.about}</span>
+                  </button>
+                  <button onClick={() => { navigate('/contact'); setActiveDropdown(null); }} className="dropdown-item-new">
+                    <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-500"><Mail size={16} /></div>
+                    <span>{language === 'en' ? 'Contact' : 'संपर्क'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
 
-        {/* Right Controls (Mobile & Desktop) */}
+        {/* Right Controls */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          {/* Desktop Only Theme/Lang */}
           <div className="hidden lg:flex items-center gap-3">
             <div className="toggle-pill">
-              <span
-                className={`toggle-opt ${language === 'en' ? 'active' : ''}`}
-                onClick={() => setLanguage('en')}
-              >
-                EN
-              </span>
-              <span
-                className={`toggle-opt ${language === 'hi' ? 'active' : ''}`}
-                onClick={() => setLanguage('hi')}
-              >
-                हिं
-              </span>
+              <span className={`toggle-opt ${language === 'en' ? 'active' : ''}`} onClick={() => setLanguage('en')}>EN</span>
+              <span className={`toggle-opt ${language === 'hi' ? 'active' : ''}`} onClick={() => setLanguage('hi')}>हिं</span>
             </div>
 
             <button
               onClick={() => setIsDark(!isDark)}
               className="cursor-pointer w-10 h-10 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-all"
-              title={t.toggleTheme}
             >
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
           </div>
 
-          {/* User Auth - Always Visible Outside Dropdown */}
           <div className="flex items-center gap-2 ">
             {user ? (
-              <div className="flex items-center gap-2 ">
-                <button
-                  onClick={() => navigate(`/${user.username}/settings`)}
-                  className="cursor-pointer w-10 h-10 rounded-xl bg-[var(--card)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] hover:border-[var(--accent)] transition-all active:scale-95 overflow-hidden shadow-sm"
-                  title={t.accountSettings || 'Account Settings'}
-                >
-                  {user?.avatar ? (
-                    <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <User size={18} />
-                  )}
-                </button>
-              </div>
-            ) : (
               <button
-                onClick={handleAuthClick}
-                className="btn-primary-new px-4 sm:px-6 py-2 text-sm rounded-xl flex items-center"
+                onClick={() => navigate(`/${user.username}/settings`)}
+                className="cursor-pointer w-10 h-10 rounded-xl bg-[var(--card)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] hover:border-[var(--accent)] transition-all active:scale-95 overflow-hidden shadow-sm"
               >
-                <LogIn size={16} className="" />
+                {user?.avatar ? <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" /> : <User size={18} />}
+              </button>
+            ) : (
+              <button onClick={handleAuthClick} className="btn-primary-new px-4 sm:px-6 py-2 text-sm rounded-xl flex items-center gap-2">
+                <LogIn size={16} />
                 <span className="max-sm:hidden">{t.login}</span>
               </button>
             )}
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu Toggle */}
             <button
-              className="lg:hidden w-10 h-10 rounded-xl bg-[var(--card)] border border-[var(--border)] flex items-center justify-center text-[var(--text)] active:scale-95 transition-all"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden w-10 h-10 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)]"
             >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -252,113 +253,36 @@ function Header({ isDark, setIsDark, language, setLanguage }) {
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Menu Backdrop */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-[var(--card)] border-b border-[var(--border)] shadow-2xl animate-fade-in p-4 z-[200] max-h-[calc(100vh-4rem)] overflow-y-auto">
-          <div className="flex flex-col gap-2 pb-20">
-            <button
-              onClick={() => { navigate('/services'); setIsMobileMenuOpen(false); }}
-              className="flex items-center gap-4 p-4 rounded-xl hover:bg-black/5 dark:hover:bg-white/5"
-            >
-              <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
-                <Layers size={20} />
-              </div>
-              <span className="font-bold text-base">{t.services}</span>
-            </button>
-
-            <button
-              onClick={() => { navigate('/docs'); setIsMobileMenuOpen(false); }}
-              className="flex items-center gap-4 p-4 rounded-xl hover:bg-black/5 dark:hover:bg-white/5"
-            >
-              <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
-                <Book size={20} />
-              </div>
-              <span className="font-bold text-base">{language === 'en' ? 'Guide & API' : 'गाइड और एपीआई'}</span>
-            </button>
-
-            <button
-              onClick={() => { navigate('/breeds'); setIsMobileMenuOpen(false); }}
-              className="flex items-center gap-4 p-4 rounded-xl hover:bg-black/5 dark:hover:bg-white/5"
-            >
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-                <BookOpen size={20} />
-              </div>
-              <span className="font-bold text-base">{t.breedsLibrary}</span>
-            </button>
-
-            <button
-              onClick={() => { navigate('/diseases'); setIsMobileMenuOpen(false); }}
-              className="flex items-center gap-4 p-4 rounded-xl hover:bg-black/5 dark:hover:bg-white/5"
-            >
-              <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500">
-                <Microscope size={20} />
-              </div>
-              <span className="font-bold text-base">{t.diseases}</span>
-            </button>
-
-            <button
-              onClick={() => { navigate('/membership'); setIsMobileMenuOpen(false); }}
-              className="flex items-center gap-4 p-4 rounded-xl hover:bg-black/5 dark:hover:bg-white/5"
-            >
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
-                <Tag size={20} />
-              </div>
-              <span className="font-bold text-base">{t.pricing}</span>
-            </button>
-
-            <button
-              onClick={() => { navigate('/about'); setIsMobileMenuOpen(false); }}
-              className="flex items-center gap-4 p-4 rounded-xl hover:bg-black/5 dark:hover:bg-white/5"
-            >
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
-                <Info size={20} />
-              </div>
-              <span className="font-bold text-base">{t.about}</span>
-            </button>
-
-            {user && (
-              <button
-                onClick={() => { navigate(`/${user.username}/developer`); setIsMobileMenuOpen(false); }}
-                className="flex items-center gap-4 p-4 rounded-xl hover:bg-black/5 dark:hover:bg-white/5"
-              >
-                <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
-                  <Terminal size={20} />
-                </div>
-                <span className="font-bold text-base">Developer API</span>
-              </button>
-            )}
-
-            {user && (
-              <button
-                onClick={() => { navigate(`/${user.username}/settings`); setIsMobileMenuOpen(false); }}
-                className="flex items-center gap-4 p-4 rounded-xl hover:bg-black/5 dark:hover:bg-white/5"
-              >
-                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
-                  <Settings size={20} />
-                </div>
-                <span className="font-bold text-base">{t.settings}</span>
-              </button>
-            )}
-
-            <div className="h-[1px] bg-[var(--border)] my-2"></div>
-
-            <div className="flex items-center justify-between p-2">
-              <span className="font-bold text-[var(--muted)] text-sm">{t.appearanceRegion}</span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setIsDark(!isDark)}
-                  className="w-10 h-10 rounded-xl bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center"
-                >
-                  {isDark ? <Sun size={18} /> : <Moon size={18} />}
-                </button>
-                <div className="toggle-pill">
-                  <span className={`toggle-opt ${language === 'en' ? 'active' : ''}`} onClick={() => setLanguage('en')}>EN</span>
-                  <span className={`toggle-opt ${language === 'hi' ? 'active' : ''}`} onClick={() => setLanguage('hi')}>हिं</span>
-                </div>
-              </div>
+        <div className="lg:hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-md animate-fade-in" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="absolute right-0 top-0 bottom-0 w-[80%] max-w-[320px] bg-[var(--card)] p-6 shadow-2xl overflow-y-auto animate-slide-in-right" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-8">
+              <span className="text-xl font-black text-[var(--accent)]">FarmLens Menu</span>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="w-10 h-10 rounded-full bg-[var(--surface)] flex items-center justify-center"><X size={20} /></button>
             </div>
 
-            <div className="mt-4 lg:hidden">
+            <div className="space-y-2">
+               <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted)] opacity-50">Exploration</p>
+               <button onClick={() => { navigate('/disease'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Stethoscope size={20} /> {t.diseasePredict}</button>
+               <button onClick={() => { navigate('/skin-disease'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Microscope size={20} /> {t.skinDiseasePredict}</button>
+               <button onClick={() => { navigate('/predict'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Camera size={20} /> {t.goToPredict}</button>
+               <button onClick={() => { navigate('/breeds'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><BookOpen size={20} /> {t.breeds}</button>
+               <button onClick={() => { navigate('/diseases'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Layers size={20} /> {t.diseases}</button>
+
+               <div className="h-[1px] bg-[var(--border)] my-4"></div>
+               <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted)] opacity-50">Main Links</p>
+               <button onClick={() => { navigate('/membership'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Tag size={20} /> {t.pricing}</button>
+               <button onClick={() => { navigate('/about'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Info size={20} /> {t.about}</button>
+               <button onClick={() => { navigate('/contact'); setIsMobileMenuOpen(false); }} className="mobile-nav-item"><Mail size={20} /> {language === 'en' ? 'Contact Us' : 'संपर्क करें'}</button>
+
+               <div className="h-[1px] bg-[var(--border)] my-4"></div>
+               <p className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted)] opacity-50">Settings & Language</p>
+               <div className="flex gap-2 p-2">
+                  <button onClick={() => setLanguage('en')} className={`flex-1 py-3 rounded-xl font-black text-sm ${language === 'en' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface)] border border-[var(--border)]'}`}>EN</button>
+                  <button onClick={() => setLanguage('hi')} className={`flex-1 py-3 rounded-xl font-black text-sm ${language === 'hi' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface)] border border-[var(--border)]'}`}>हिं</button>
+               </div>
+               <button onClick={() => { setIsDark(!isDark); setIsMobileMenuOpen(false); }} className="mobile-nav-item mt-2 w-full justify-center bg-[var(--surface)] border border-[var(--border)]">{isDark ? <Sun size={20} /> : <Moon size={20} />} {t.toggleTheme}</button>
             </div>
           </div>
         </div>

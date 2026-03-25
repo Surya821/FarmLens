@@ -18,6 +18,26 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Admin: Mark all as read
+router.post('/read-all', async (req, res) => {
+  try {
+    await Message.updateMany({ status: 'unread' }, { status: 'read' });
+    res.json({ success: true, message: 'All messages marked as read' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update all messages' });
+  }
+});
+
+// Admin: Delete all read messages
+router.delete('/delete-read', async (req, res) => {
+  try {
+    await Message.deleteMany({ status: 'read' });
+    res.json({ success: true, message: 'All read messages deleted' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete read messages' });
+  }
+});
+
 // Admin: Get all messages
 router.get('/', async (req, res) => {
   try {

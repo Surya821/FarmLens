@@ -41,38 +41,30 @@ const validatePassword = (password) => {
 // Register new user
 router.post('/register', checkDBConnection, async (req, res) => {
   try {
-    // console.log('Register request body:', req.body);
-
     const { name, mobile, address, password, email } = req.body;
 
-    // Check for missing fields
     if (!name || !mobile || !address || !password) {
-      console.log('Missing fields:', { name: !!name, mobile: !!mobile, address: !!address, password: !!password });
       return res.status(400).json({
         error: 'All fields are required'
       });
     }
 
-    // Trim inputs
     const trimmedName = name.trim();
     const trimmedMobile = mobile.trim();
     const trimmedAddress = address.trim();
     const trimmedEmail = email ? email.trim().toLowerCase() : undefined;
 
-    // Check if fields are empty after trimming
     if (!trimmedName || !trimmedMobile || !trimmedAddress || !password) {
       return res.status(400).json({
         error: 'All fields must contain valid data'
       });
     }
 
-    // Validate password on server side
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.valid) {
       return res.status(400).json({ error: passwordValidation.error });
     }
 
-    // Check if user already exists
     const existingUser = await User.findOne({ mobile: trimmedMobile });
     if (existingUser) {
       return res.status(400).json({ error: 'User with this mobile number already exists' });
@@ -85,7 +77,6 @@ router.post('/register', checkDBConnection, async (req, res) => {
       }
     }
 
-    // Generate username
     const baseUsername = trimmedName.toLowerCase().replace(/\s+/g, '');
     let username = baseUsername;
     let counter = 1;
@@ -95,26 +86,22 @@ router.post('/register', checkDBConnection, async (req, res) => {
       counter++;
     }
 
-    // Create new user - password will be hashed by the pre-save middleware
     const user = new User({
       name: trimmedName,
       mobile: trimmedMobile,
       address: trimmedAddress,
       email: trimmedEmail,
       username,
-      password: password // Don't hash here - let the model middleware handle it
+      password: password
     });
 
     await user.save();
 
-    // Generate token
     const token = jwt.sign(
       { userId: user._id, username: user.username },
       process.env.JWT_SECRET || 'fallback-secret-key',
       { expiresIn: '30d' }
     );
-
-    console.log('User registered successfully:', user._id);
 
     res.status(201).json({
       token,
@@ -128,16 +115,12 @@ router.post('/register', checkDBConnection, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
-
     if (error.code === 11000) {
-      // Duplicate key error
       const field = Object.keys(error.keyPattern)[0];
       return res.status(400).json({
         error: `${field === 'mobile' ? 'Mobile number' : 'Username'} already registered`
       });
     }
-
     res.status(500).json({ error: 'Registration failed. Please try again.' });
   }
 });
@@ -145,8 +128,6 @@ router.post('/register', checkDBConnection, async (req, res) => {
 // Login user
 router.post('/login', checkDBConnection, async (req, res) => {
   try {
-    // console.log('Login request body:', req.body);
-
     const { mobile, password } = req.body;
 
     if (!mobile || !password) {
@@ -155,33 +136,26 @@ router.post('/login', checkDBConnection, async (req, res) => {
       });
     }
 
-    // Trim mobile number
     const trimmedMobile = mobile.trim();
 
-    // Find user
     const user = await User.findOne({ mobile: trimmedMobile });
     if (!user) {
       return res.status(401).json({ error: 'Invalid mobile number or password' });
     }
 
-    // Check password using the model method
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Invalid mobile number or password' });
     }
 
-    // Generate token
     const token = jwt.sign(
       { userId: user._id, username: user.username },
       process.env.JWT_SECRET || 'fallback-secret-key',
       { expiresIn: '30d' }
     );
 
-    // Update last login
     user.lastLogin = new Date();
     await user.save();
-
-    console.log('User logged in successfully:', user._id);
 
     res.json({
       token,
@@ -195,7 +169,6 @@ router.post('/login', checkDBConnection, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed. Please try again.' });
   }
 });
@@ -213,20 +186,15 @@ router.post('/forgot-password', checkDBConnection, async (req, res) => {
       return res.status(404).json({ error: 'No account found with this email address' });
     }
 
-    // Generate 6 digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     user.resetPasswordOTP = otp;
-    user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    user.resetPasswordExpires = Date.now() + 10 * 60 * 1000;
 
     await user.save();
-
-    // Send OTP via email
     await sendOtpEmail(trimmedEmail, otp);
-    console.log(`Password reset OTP sent to: ${trimmedEmail}`);
 
     res.json({ message: 'OTP sent to your email successfully. Please check your inbox.' });
   } catch (error) {
-    console.error('Forgot password error:', error);
     res.status(500).json({ error: 'Failed to send OTP. Please check your email address and try again.' });
   }
 });
@@ -255,7 +223,7 @@ router.post('/reset-password', checkDBConnection, async (req, res) => {
       return res.status(400).json({ error: 'Invalid or expired OTP' });
     }
 
-    user.password = newPassword; // gets hashed in pre-save
+    user.password = newPassword;
     user.resetPasswordOTP = undefined;
     user.resetPasswordExpires = undefined;
 
@@ -263,7 +231,6 @@ router.post('/reset-password', checkDBConnection, async (req, res) => {
 
     res.json({ message: 'Password has been reset successfully' });
   } catch (error) {
-    console.error('Reset password error:', error);
     res.status(500).json({ error: 'Reset password failed' });
   }
 });
@@ -277,7 +244,6 @@ router.post('/google-login', checkDBConnection, async (req, res) => {
       return res.status(400).json({ error: 'Google credential is required' });
     }
 
-    // Verify the Google token
     const ticket = await client.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID
@@ -286,7 +252,6 @@ router.post('/google-login', checkDBConnection, async (req, res) => {
     const payload = ticket.getPayload();
     const { sub: googleId, email, name, picture } = payload;
 
-    // Find or create user
     let user = await User.findOne({
       $or: [
         { googleId: googleId },
@@ -295,7 +260,6 @@ router.post('/google-login', checkDBConnection, async (req, res) => {
     });
 
     if (!user) {
-      // Create a unique username
       const baseUsername = name.toLowerCase().replace(/\s+/g, '');
       let username = baseUsername;
       let counter = 1;
@@ -305,34 +269,27 @@ router.post('/google-login', checkDBConnection, async (req, res) => {
         counter++;
       }
 
-      // Create new user
       user = new User({
         name,
         email,
         googleId,
         username,
         avatar: picture,
-        // Since it's Google login, we provide fallback values for required-ish fields
         mobile: `google_${googleId.substring(0, 10)}`,
         address: 'Google Account'
       });
 
       await user.save();
-      console.log('New user created via Google Login:', user._id);
     } else {
-      // If user exists but doesn't have googleId linked (found by email)
       if (!user.googleId) {
         user.googleId = googleId;
         if (!user.avatar) user.avatar = picture;
         await user.save();
-        console.log('Linked Google account to existing user:', user._id);
       }
-      // Update last login
       user.lastLogin = new Date();
       await user.save();
     }
 
-    // Generate token
     const token = jwt.sign(
       { userId: user._id, username: user.username },
       process.env.JWT_SECRET || 'fallback-secret-key',
@@ -353,7 +310,6 @@ router.post('/google-login', checkDBConnection, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Google Login error:', error);
     res.status(500).json({ error: 'Google authentication failed. Please try again.' });
   }
 });
@@ -377,7 +333,6 @@ router.get('/me', auth, async (req, res) => {
       membership: user.membership
     });
   } catch (error) {
-    console.error('Error fetching user:', error);
     res.status(500).json({ error: 'Failed to fetch user profile' });
   }
 });

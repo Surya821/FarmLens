@@ -20,6 +20,7 @@ import paymentRoutes from './routes/payment.js';
 import diseaseRoutes from './routes/disease.js';
 import apiKeyRoutes from './routes/api-keys.js';
 import v1Routes from './routes/v1.js';
+import chatbotRoutes from './routes/chatbot.js';
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/diseases', diseaseRoutes);
 app.use('/api/api-keys', apiKeyRoutes);
 app.use('/api/v1', v1Routes);
+app.use('/api/chatbot', chatbotRoutes);
 
 // MongoDB Connection — requires MONGODB_URI to be set in .env (Atlas)
 const MONGODB_URI = process.env.MONGODB_URI;

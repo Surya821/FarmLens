@@ -31,6 +31,7 @@ function AdminDashboard({ isDark, setIsDark }) {
 
     const fetchData = async () => {
       try {
+        setLoading(true);
         const [statsRes, msgRes, userRes] = await Promise.all([
           fetch(`${API_BASE}/api/admin/stats`),
           fetch(`${API_BASE}/api/messages`),

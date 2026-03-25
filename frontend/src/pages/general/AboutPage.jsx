@@ -8,7 +8,7 @@ function AboutPage({ isDark, language }) {
   const t = translations[language];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
+  const [content, setContent] = useState('');
   const [sending, setSending] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -19,23 +19,23 @@ function AboutPage({ isDark, language }) {
   ];
 
   const team = [
-    { name: "Surya", role: "AI Research Lead", initial: "SS" },
+    { name: "Surya", role: "Full Stack Developer", initial: "SS" },
     { name: "Garv", role: "Chief Veterinarian", initial: "GS" },
     { name: "Dev", role: "Product Designer", initial: "DS" },
-    { name: "Pankaj", role: "Full Stack Developer", initial: "PS" },
+    { name: "Pankaj", role: "AI Research Lead", initial: "PS" },
   ];
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
     setSending(true);
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-      const response = await fetch(`${API_BASE}/api/messages`, {
+      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_BASE}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, content: message }),
+        body: JSON.stringify({ email, content }),
       });
       if (response.ok) {
         setSuccess(true);
@@ -43,7 +43,7 @@ function AboutPage({ isDark, language }) {
           setIsModalOpen(false);
           setSuccess(false);
           setEmail('');
-          setMessage('');
+          setContent('');
         }, 2000);
       }
     } catch (error) {
@@ -243,25 +243,27 @@ function AboutPage({ isDark, language }) {
                 </div>
               ) : (
                 <form onSubmit={handleSendMessage} className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-black uppercase tracking-widest text-[var(--muted)] mb-2">Your Email</label>
-                    <input 
-                      type="email" 
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
-                      className="w-full px-6 py-4 bg-[var(--surface)] border border-[var(--border)] rounded-2xl focus:border-[var(--accent)] outline-none transition-all font-bold"
-                    />
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-[var(--muted)] mb-2">Email</label>
+                      <input 
+                        type="email" 
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="john@example.com"
+                        className="w-full px-5 py-3.5 bg-[var(--surface)] border border-[var(--border)] rounded-2xl focus:border-[var(--accent)] outline-none transition-all font-bold text-sm"
+                      />
+                    </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-black uppercase tracking-widest text-[var(--muted)] mb-2">Message</label>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-[var(--muted)] mb-2">Message</label>
                     <textarea 
                       required
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
                       placeholder="What's on your mind?"
-                      className="w-full h-40 px-6 py-4 bg-[var(--surface)] border border-[var(--border)] rounded-2xl focus:border-[var(--accent)] outline-none transition-all font-bold resize-none"
+                      className="w-full h-32 px-5 py-3.5 bg-[var(--surface)] border border-[var(--border)] rounded-2xl focus:border-[var(--accent)] outline-none transition-all font-bold resize-none text-sm"
                     ></textarea>
                   </div>
                   <button 

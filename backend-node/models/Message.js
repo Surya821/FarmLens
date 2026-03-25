@@ -4,14 +4,16 @@ const messageSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
+    trim: true,
+    lowercase: true
   },
   content: {
     type: String,
-    required: true,
+    required: true
   },
   status: {
     type: String,
-    enum: ['read', 'unread'],
+    enum: ['unread', 'read', 'archived'],
     default: 'unread'
   },
   createdAt: {
@@ -20,4 +22,6 @@ const messageSchema = new mongoose.Schema({
   }
 });
 
-export default mongoose.model('Message', messageSchema);
+const Message = mongoose.model('Message', messageSchema);
+
+export default Message;
