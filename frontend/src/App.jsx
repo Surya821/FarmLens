@@ -139,7 +139,7 @@ function AppContent({
         />
       )}
 
-      <main className={!isAdminPath ? "pt-[72px]" : ""}>
+      <main className={!isAdminPath ? "pt-[0px]" : ""}>
         <Routes>
           <Route path="/" element={<GuestRoute><HomePage isDark={isDark} language={language} setSelectedBreed={setSelectedBreed} /></GuestRoute>} />
           <Route path="/breeds" element={<BreedsPage isDark={isDark} language={language} setSelectedBreed={setSelectedBreed} />} />
@@ -210,7 +210,7 @@ function AppContent({
             >
               <div className="absolute inset-0 bg-white/20 rounded-full animate-ping opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <i className="fa-solid fa-robot text-2xl"></i>
-              <span className="absolute right-20 px-4 py-2 bg-[var(--card)] border border-[var(--border)] text-[var(--accent)] text-xs font-black rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl">
+              <span className="absolute right-20 px-4 py-2 bg-[var(--card)] border border-[var(--border)] text-[var(--accent)] text-xs font-black rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap shadow-xl">
                 {language === 'en' ? 'Ask FarmLens AI' : 'एआई से पूछें'}
               </span>
             </button>

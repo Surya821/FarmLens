@@ -107,7 +107,7 @@ function MembershipPage({ isDark, language }) {
   ];
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-4 relative">
+    <div className="min-h-screen pt-8 pb-16 px-4 relative">
       <div className="max-w-7xl mx-auto">
         {/* Back Button */}
         <button

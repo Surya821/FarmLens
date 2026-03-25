@@ -28,6 +28,18 @@ function Header({ isDark, setIsDark, language, setLanguage }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Lock scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
+
   const handleAuthClick = () => {
     if (user) {
       logout();
@@ -46,7 +58,7 @@ function Header({ isDark, setIsDark, language, setLanguage }) {
   const atHome = location.pathname === '/';
 
   return (
-    <nav className="farmlens-header px-4 py-3">
+    <nav className="farmlens-header px-4 py-5">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-5 w-full">
         {/* Logo */}
         <div
@@ -160,10 +172,6 @@ function Header({ isDark, setIsDark, language, setLanguage }) {
             {activeDropdown === 'resources' && (
               <div className="absolute top-full left-0 pt-2 min-w-[240px] z-[150]">
                 <div className="dropdown-menu-new animate-fade-in shadow-xl">
-                  <button onClick={() => { navigate('/guide'); setActiveDropdown(null); }} className="dropdown-item-new">
-                    <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500"><FileText size={16} /></div>
-                    <span>{language === 'en' ? 'User Guide' : 'उपयोगकर्ता गाइड'}</span>
-                  </button>
                   <button onClick={() => { navigate('/docs'); setActiveDropdown(null); }} className="dropdown-item-new">
                     <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500"><Book size={16} /></div>
                     <span>{language === 'en' ? 'Documentation' : 'दस्तावेज़'}</span>
@@ -208,6 +216,17 @@ function Header({ isDark, setIsDark, language, setLanguage }) {
               </div>
             )}
           </div>
+
+          {/* 5. Settings (Desktop) */}
+          {user && (
+            <button
+              onClick={() => navigate(`/${user.username}/settings`)}
+              className={`nav-link px-4 py-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 ${location.pathname.includes('/settings') ? 'text-[var(--accent)]' : ''}`}
+            >
+              <Settings size={16} />
+              <span className="font-bold">{language === 'en' ? 'Settings' : 'सेटिंग्स'}</span>
+            </button>
+          )}
 
         </div>
 
@@ -291,11 +310,25 @@ function Header({ isDark, setIsDark, language, setLanguage }) {
                 <button onClick={() => setLanguage('en')} className={`flex-1 py-3 rounded-xl font-black text-sm border-2 transition-all ${language === 'en' ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-lg shadow-green-500/20' : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted)]'}`}>EN</button>
                 <button onClick={() => setLanguage('hi')} className={`flex-1 py-3 rounded-xl font-black text-sm border-2 transition-all ${language === 'hi' ? 'bg-[var(--accent)] text-white border-[var(--accent)] shadow-lg shadow-green-500/20' : 'bg-[var(--surface)] border-[var(--border)] text-[var(--muted)]'}`}>हिं</button>
              </div>
-             <button onClick={() => { setIsDark(!isDark); setIsMobileMenuOpen(false); }} className="mobile-nav-item mt-2 w-full justify-center bg-[var(--surface)] border border-[var(--border)] shadow-sm">
-                {isDark ? <Sun size={20} className="text-yellow-500" /> : <Moon size={20} className="text-blue-500" />} 
-                <span className="font-black ml-2">{t.toggleTheme}</span>
-             </button>
-          </div>
+                <button onClick={() => { setIsDark(!isDark); setIsMobileMenuOpen(false); }} className="mobile-nav-item mt-2 w-full justify-center bg-[var(--surface)] border border-[var(--border)] shadow-sm">
+                   {isDark ? <Sun size={20} className="text-yellow-500" /> : <Moon size={20} className="text-blue-500" />} 
+                   <span className="font-black ml-2">{t.toggleTheme}</span>
+                </button>
+
+                {user && (
+                  <>
+                    <div className="h-[1px] bg-[var(--border)] my-4 mx-4"></div>
+                    <button onClick={() => { navigate(`/${user.username}/settings`); setIsMobileMenuOpen(false); }} className="mobile-nav-item">
+                       <Settings size={20} className="text-slate-500" /> 
+                       <span>{language === 'en' ? 'Account Settings' : 'खाता सेटिंग्स'}</span>
+                    </button>
+                    <button onClick={() => { logout(); navigate('/'); setIsMobileMenuOpen(false); }} className="mobile-nav-item text-red-500 hover:bg-red-500/10">
+                       <LogOut size={20} /> 
+                       <span>{language === 'en' ? 'Log Out' : 'लॉग आउट'}</span>
+                    </button>
+                  </>
+                )}
+             </div>
         </div>
       </div>
     </nav>
