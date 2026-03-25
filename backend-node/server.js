@@ -33,6 +33,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('uploads'));
 
+// Allow Google OAuth popups to postMessage back to the opener
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  next();
+});
+
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/cattle', cattleRoutes);

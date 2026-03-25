@@ -9,6 +9,10 @@ export default defineConfig({
     proxy: {
       // Proxy API calls to FastAPI during dev
       '/api': 'http://127.0.0.1:8000',
+    },
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      'Cross-Origin-Embedder-Policy': 'unsafe-none',
     }
   }
 });
