@@ -75,12 +75,49 @@ function PredictPage({ isDark, language, setSelectedBreed, prediction, setPredic
         throw new Error(data.error || 'Server error');
       }
 
-      const predictedClass = data.predicted_class;
-      setPrediction(predictedClass);
+      // Normalize the predicted class to match breedData keys
+      let predictedClass = data.predicted_class;
+      console.log('AI Response:', data); // 🛠️ DEBUG LOG
 
-      if (predictedClass && predictedClass !== "No cattle detected" && breedData[predictedClass]) {
-        // Mocking confidence and alternatives since backend might not provide them yet
-        const conf = Math.floor(88 + Math.random() * 10);
+      // Mapping for all backend-to-frontend mismatches (Total 41 AI Breeds)
+      const breedMapping = {
+        'Ayrshire': 'Ayrshire cattle',
+        'Brown_Swiss': 'Brown Swiss cattle',
+        'Holstein_Friesian': 'Holstein Friesian cattle',
+        'Jersey': 'Jersey cattle',
+        'Red_Dane': 'Red Dane cattle',
+        'Guernsey': 'Guernsey cattle',
+        'Kasargod': 'Kasargod cattle',
+        'Alambadi': 'Alambadi cattle',
+        'Khillari': 'Khillar',
+        'Malnad_gidda': 'Malnad Gidda',
+        'Red_Sindhi': 'Red Sindhi',
+        'Krishna_Valley': 'Krishna Valley',
+        'Nili_Ravi': 'Nili Ravi'
+      };
+
+      // 1. Check direct mapping
+      if (breedMapping[predictedClass]) {
+        predictedClass = breedMapping[predictedClass];
+      } else {
+        // 2. Fallback: Clean underscores and normalize spaces
+        predictedClass = predictedClass.replace(/_/g, ' ').trim();
+      }
+
+      // CASE-INSENSITIVE SEARCH: Try to find the exact key in breedData
+      const foundKey = Object.keys(breedData).find(key => 
+        key.toLowerCase() === predictedClass.toLowerCase() ||
+        key.toLowerCase() === `${predictedClass.toLowerCase()} cattle`
+      );
+
+      const finalPrediction = foundKey || predictedClass;
+      console.log('Final Mapped Prediction:', finalPrediction);
+
+      setPrediction(finalPrediction);
+
+      if (finalPrediction && finalPrediction !== "No cattle detected" && breedData[finalPrediction]) {
+        // Use the actual confidence from backend if available, otherwise mock it
+        const conf = data.confidence ? Math.round(data.confidence * 100) : Math.floor(88 + Math.random() * 10);
         setConfidence(conf);
 
         const otherBreeds = Object.keys(breedData)
@@ -321,7 +358,7 @@ function PredictPage({ isDark, language, setSelectedBreed, prediction, setPredic
                       </div>
                       <h2 className="text-4xl font-black text-[var(--text)] mb-6 tracking-tight">{prediction}</h2>
 
-                      <div className="grid grid-cols-2 gap-4 mb-8">
+                      <div className="grid grid-cols-2 gap-4 mb-8 max-sm:grid-cols-1">
                         <div className="p-4 bg-[var(--bg)] rounded-2xl border border-[var(--border)]">
                           <div className="text-[9px] uppercase font-black text-[var(--muted)] tracking-widest mb-1">{t.origin}</div>
                           <div className="font-bold text-[var(--accent)]">{getText(breedData[prediction].origin)}</div>
@@ -340,7 +377,8 @@ function PredictPage({ isDark, language, setSelectedBreed, prediction, setPredic
                         onClick={() => handleLearnMore()}
                         className="w-full py-4 bg-[var(--text)] text-[var(--bg)] rounded-2xl font-black text-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 shadow-xl"
                       >
-                        <i className="fa-solid fa-book-open"></i> {t.learnMore}
+                        <div className='max-sm:hidden'>
+                        <i className="fa-solid fa-book-open"></i></div> {t.learnMore}
                       </button>
                     </div>
                   </div>

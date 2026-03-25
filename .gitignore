@@ -64,3 +64,6 @@ pnpm-debug.log*
 *.keras
 
 Cattle_Resized
+
+#models
+models/

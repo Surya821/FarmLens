@@ -26,7 +26,7 @@ import gdown
 # Paths
 # -----------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CHECKPOINT_PATH = os.path.join(BASE_DIR, "best_model_final.pth")
+CHECKPOINT_PATH = os.path.join(BASE_DIR, "models/best_model_final.pth")
 RF_MODEL_PATH = os.path.join(BASE_DIR, "models/random_forest_model.pkl")
 SKIN_MODEL_PATH = os.path.join(BASE_DIR, "models/best_densenet_cattle.keras")
 
@@ -237,7 +237,7 @@ async def predict(file: UploadFile = File(...)):
             probabilities = torch.nn.functional.softmax(outputs[0], dim=0)
             confidence, predicted = torch.max(probabilities, 0)
 
-            if confidence.item() < 0.35:
+            if confidence.item() < 0.20:
                 return JSONResponse(status_code=400, content={
                     "status": "error",
                     "error": "No cattle detected",
