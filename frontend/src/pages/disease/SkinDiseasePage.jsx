@@ -11,7 +11,7 @@ function SkinDiseasePage({ isDark, language, skinPrediction, setSkinPrediction, 
   const [allPredictions, setAllPredictions] = useState(null);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
-  const { user, incrementUsage, getUsageLimit } = useAuth();
+  const { user, incrementUsage, getUsageLimit, triggerLimitModal } = useAuth();
   const t = translations[language];
 
   const currentLimit = getUsageLimit('ai');
@@ -42,8 +42,7 @@ function SkinDiseasePage({ isDark, language, skinPrediction, setSkinPrediction, 
     if (!selectedFile) return;
 
     if (isLimitReached) {
-      alert(language === 'en' ? "Your AI prediction limit has been reached. Please upgrade to Pro for more scans!" : "आपकी एआई भविष्यवाणी की सीमा समाप्त हो गई है। कृपया अधिक स्कैन के लिए प्रो पर अपग्रेड करें!");
-      navigate('/membership');
+      triggerLimitModal(true);
       return;
     }
 

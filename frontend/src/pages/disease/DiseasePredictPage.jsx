@@ -13,7 +13,7 @@ function DiseasePredictPage({ isDark, language, diseasePrediction, setDiseasePre
   const [isSymptomModalOpen, setIsSymptomModalOpen] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { user, incrementUsage, getUsageLimit } = useAuth();
+  const { user, incrementUsage, getUsageLimit, triggerLimitModal } = useAuth();
   const t = translations[language];
 
   const currentLimit = getUsageLimit('symptoms');
@@ -68,8 +68,7 @@ function DiseasePredictPage({ isDark, language, diseasePrediction, setDiseasePre
     }
 
     if (isLimitReached) {
-      alert(language === 'en' ? "Your symptom prediction limit has been reached. Please upgrade to Pro for more analysis!" : "आपके लक्षण भविष्यवाणी की सीमा समाप्त हो गई है। कृपया अधिक विश्लेषण के लिए प्रो पर अपग्रेड करें!");
-      navigate('/membership');
+      triggerLimitModal(true);
       return;
     }
 

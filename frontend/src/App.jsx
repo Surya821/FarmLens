@@ -10,6 +10,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import GuestRoute from './components/GuestRoute';
+import UsageLimitModal from './components/UsageLimitModal';
 
 // Pages - Auth
 import AuthPage from './pages/auth/AuthPage';
@@ -96,7 +97,7 @@ function AppContent({
 }) {
   const { isDark, setIsDark } = useTheme();
   const location = useLocation();
-  const { logout, user } = useAuth(); // Get logout and user from AuthContext
+  const { logout, user, showLimitModal, triggerLimitModal } = useAuth(); // Get logout and user from AuthContext
   const isAdminPath = location.pathname.startsWith('/admin');
 
   // Scroll to top on route change or reload
@@ -176,6 +177,13 @@ function AppContent({
 
       {!isAdminPath && <Footer isDark={isDark} language={language} />}
       
+      {/* Global Usage Limit Modal */}
+      <UsageLimitModal 
+        isOpen={showLimitModal} 
+        onClose={() => triggerLimitModal(false)} 
+        language={language}
+      />
+
       <Toaster 
         position="top-right"
         richColors

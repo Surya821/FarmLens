@@ -12,7 +12,7 @@ function PredictPage({ isDark, language, setSelectedBreed, prediction, setPredic
   const [alternatives, setAlternatives] = useState([]);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
-  const { user, incrementUsage, getUsageLimit } = useAuth();
+  const { user, incrementUsage, getUsageLimit, triggerLimitModal } = useAuth();
   const t = translations[language];
 
   const currentLimit = getUsageLimit('ai');
@@ -48,8 +48,7 @@ function PredictPage({ isDark, language, setSelectedBreed, prediction, setPredic
     if (!selectedFile) return;
 
     if (isLimitReached) {
-      alert(language === 'en' ? "Your AI prediction limit has been reached. Please upgrade to Pro for more scans!" : "आपकी एआई भविष्यवाणी की सीमा समाप्त हो गई है। कृपया अधिक स्कैन के लिए प्रो पर अपग्रेड करें!");
-      navigate('/membership');
+      triggerLimitModal(true);
       return;
     }
 
@@ -116,8 +115,9 @@ function PredictPage({ isDark, language, setSelectedBreed, prediction, setPredic
       setPrediction(finalPrediction);
 
       if (finalPrediction && finalPrediction !== "No cattle detected" && breedData[finalPrediction]) {
-        // Use the actual confidence from backend if available, otherwise mock it
-        const conf = data.confidence ? Math.round(data.confidence * 100) : Math.floor(88 + Math.random() * 10);
+        // Use the actual confidence from backend if available, floor at 70%
+        let conf = data.confidence ? Math.round(data.confidence * 100) : Math.floor(88 + Math.random() * 10);
+        conf = Math.max(70, conf);
         setConfidence(conf);
 
         const otherBreeds = Object.keys(breedData)

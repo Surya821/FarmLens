@@ -9,6 +9,7 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -78,13 +79,17 @@ export function AuthProvider({ children }) {
     return limits[user?.membership || 'Free'][type === 'ai' ? 'ai' : 'symptoms'];
   };
 
+  const triggerLimitModal = (isOpen = true) => setShowLimitModal(isOpen);
+
   const value = {
     user,
     login,
     logout,
     updateUser,
     incrementUsage,
-    getUsageLimit
+    getUsageLimit,
+    showLimitModal,
+    triggerLimitModal
   };
 
   return (
