@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   Users, Activity, MessageSquare, Database,
@@ -30,9 +32,9 @@ function AdminDashboard({ isDark, setIsDark }) {
     const fetchData = async () => {
       try {
         const [statsRes, msgRes, userRes] = await Promise.all([
-          fetch('http://localhost:5001/api/admin/stats'),
-          fetch('http://localhost:5001/api/messages'),
-          fetch('http://localhost:5001/api/admin/users')
+          fetch(`${API_BASE}/api/admin/stats`),
+          fetch(`${API_BASE}/api/messages`),
+          fetch(`${API_BASE}/api/admin/users`)
         ]);
 
         if (statsRes.ok) {
@@ -65,7 +67,7 @@ function AdminDashboard({ isDark, setIsDark }) {
 
   const markAsRead = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/messages/${id}/read`, { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/messages/${id}/read`, { method: 'POST' });
       if (res.ok) {
         // Update locally so the stat card and list update immediately
         setMessages(prev => prev.map(m => m._id === id ? { ...m, status: 'read' } : m));

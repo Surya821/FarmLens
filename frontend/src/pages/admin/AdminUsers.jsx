@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 import { useNavigate } from 'react-router-dom';
 import { Users, Search, Mail, Calendar, Trash2, AlertTriangle, Filter, ArrowUpDown, ChevronUp, ChevronDown, Shield } from 'lucide-react';
 import AdminNavbar from './AdminNavbar';
@@ -26,7 +28,7 @@ function AdminUsers({ isDark, setIsDark }) {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/admin/users');
+      const response = await fetch(`${API_BASE}/api/admin/users`);
       const data = await response.json();
       setUsers(data);
     } catch (error) {
@@ -39,7 +41,7 @@ function AdminUsers({ isDark, setIsDark }) {
   const deleteUser = async (id) => {
     setDeletingId(id);
     try {
-      const response = await fetch(`http://localhost:5001/api/admin/users/${id}`, { method: 'DELETE' });
+      const response = await fetch(`${API_BASE}/api/admin/users/${id}`, { method: 'DELETE' });
       if (response.ok) {
         setUsers(users.filter(u => u._id !== id));
         setConfirmDelete(null);

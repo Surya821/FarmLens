@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 import { useNavigate } from 'react-router-dom';
 import { Search, Trash2, Edit3, Eye, AlertTriangle, X, CheckCircle, Image as ImageIcon, Database, Globe, Info } from 'lucide-react';
 import AdminNavbar from './AdminNavbar';
@@ -24,7 +26,7 @@ function AdminManageBreeds({ isDark, setIsDark }) {
 
   const fetchBreeds = async () => {
     try {
-      const res = await fetch('http://localhost:5001/api/breeds');
+      const res = await fetch(`${API_BASE}/api/breeds`);
       const data = await res.json();
       setBreeds(data);
     } catch (err) {
@@ -37,7 +39,7 @@ function AdminManageBreeds({ isDark, setIsDark }) {
   const deleteBreed = async (id) => {
     setDeletingId(id);
     try {
-      const res = await fetch(`http://localhost:5001/api/breeds/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/api/breeds/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setBreeds(prev => prev.filter(b => b._id !== id));
         setConfirmDelete(null);
@@ -71,7 +73,7 @@ function AdminManageBreeds({ isDark, setIsDark }) {
     if (editImageFile) fd.append('imageFile', editImageFile);
 
     try {
-      const res = await fetch(`http://localhost:5001/api/breeds/${editBreed._id}`, {
+      const res = await fetch(`${API_BASE}/api/breeds/${editBreed._id}`, {
         method: 'PUT',
         body: fd
       });

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 import { useNavigate } from 'react-router-dom';
 import { Database, Plus, Globe, Info, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import AdminNavbar from './AdminNavbar';
@@ -94,7 +96,7 @@ function AdminBreeds({ isDark, setIsDark }) {
     }
 
     try {
-      const res = await fetch('http://localhost:5001/api/breeds', {
+      const res = await fetch(`${API_BASE}/api/breeds`, {
         method: 'POST',
         // Omit Content-Type so browser sets boundary for multipart/form-data
         body: submitFormData

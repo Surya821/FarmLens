@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Clock, CheckCircle, Trash2, Search, AlertTriangle } from 'lucide-react';
 import AdminNavbar from './AdminNavbar';
@@ -21,7 +23,7 @@ function AdminMessages({ isDark, setIsDark }) {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/messages');
+      const response = await fetch(`${API_BASE}/api/messages`);
       if (!response.ok) throw new Error(`Status: ${response.status}`);
       const data = await response.json();
       setMessages(data);
@@ -34,7 +36,7 @@ function AdminMessages({ isDark, setIsDark }) {
 
   const markAsRead = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/messages/${id}/read`, { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/messages/${id}/read`, { method: 'POST' });
       if (!res.ok) throw new Error('Failed');
       setMessages(prev => prev.map(m => m._id === id ? { ...m, status: 'read' } : m));
     } catch (error) {
@@ -46,7 +48,7 @@ function AdminMessages({ isDark, setIsDark }) {
   const deleteMessage = async (id) => {
     setDeletingId(id);
     try {
-      const res = await fetch(`http://localhost:5001/api/messages/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/api/messages/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed');
       setMessages(prev => prev.filter(m => m._id !== id));
       setConfirmDelete(null);

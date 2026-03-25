@@ -70,7 +70,8 @@ export default function WorldBreedMap({ isDark, language }) {
   const [cloudBreeds, setCloudBreeds] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:5001/api/breeds')
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+    fetch(`${API_BASE}/api/breeds`)
       .then(res => res.json())
       .then(data => {
         // Only keep DB breeds that have valid coordinates

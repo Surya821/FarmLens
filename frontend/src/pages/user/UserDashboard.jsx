@@ -39,7 +39,7 @@ function UserDashboard({ isDark, language }) {
   const [iconPickerIndex, setIconPickerIndex] = useState(null);
   const [timePickerIndex, setTimePickerIndex] = useState(null);
   const [timePickerView, setTimePickerView] = useState('hours'); // 'hours' or 'minutes'
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
   const parseTime = (timeStr) => {
     if (!timeStr) return 0;

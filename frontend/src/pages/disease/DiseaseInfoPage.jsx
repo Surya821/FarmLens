@@ -17,7 +17,8 @@ function DiseaseInfoPage({ isDark, language }) {
 
   const fetchDiseaseDetails = async () => {
     try {
-      const res = await fetch(`http://localhost:5001/api/diseases`);
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_BASE}/api/diseases`);
       const data = await res.json();
       const found = data.find(d => d._id === diseaseId);
       if (found) {

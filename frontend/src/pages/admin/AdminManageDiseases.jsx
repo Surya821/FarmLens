@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 import { useNavigate } from 'react-router-dom';
 import { Search, Trash2, Edit3, Eye, AlertTriangle, X, CheckCircle, Image as ImageIcon, Activity, ShieldAlert, Globe, Info } from 'lucide-react';
 import AdminNavbar from './AdminNavbar';
@@ -23,7 +25,7 @@ function AdminManageDiseases({ isDark, setIsDark }) {
 
   const fetchDiseases = async () => {
     try {
-      const res = await fetch('http://localhost:5001/api/diseases');
+      const res = await fetch(`${API_BASE}/api/diseases`);
       const data = await res.json();
       setDiseases(data);
     } catch (err) {
@@ -36,7 +38,7 @@ function AdminManageDiseases({ isDark, setIsDark }) {
   const deleteDisease = async (id) => {
     setDeletingId(id);
     try {
-      const res = await fetch(`http://localhost:5001/api/diseases/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_BASE}/api/diseases/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setDiseases(prev => prev.filter(d => d._id !== id));
         setConfirmDelete(null);
@@ -57,7 +59,7 @@ function AdminManageDiseases({ isDark, setIsDark }) {
     if (editImageFile) fd.append('imageFile', editImageFile);
 
     try {
-      const res = await fetch(`http://localhost:5001/api/diseases/${editDisease._id}`, {
+      const res = await fetch(`${API_BASE}/api/diseases/${editDisease._id}`, {
         method: 'PUT',
         body: fd
       });

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -124,7 +126,6 @@ function AuthPage({ isDark, language }) {
     setLoading(true);
 
     try {
-      const API_BASE = 'http://localhost:5001';
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
 
       // Prepare data for API - ensure all fields are strings
@@ -176,7 +177,6 @@ function AuthPage({ isDark, language }) {
   const handleGoogleSuccess = async (credentialResponse) => {
     setLoading(true);
     try {
-      const API_BASE = 'http://localhost:5001';
       const response = await fetch(`${API_BASE}/api/auth/google-login`, {
         method: 'POST',
         headers: {

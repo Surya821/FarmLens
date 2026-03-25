@@ -13,7 +13,7 @@ function MembershipPage({ isDark, language }) {
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'yearly'
 
   const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_TYooMQauvdEDq54NiTphI7jx');
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
   const handlePayment = async (plan) => {
     if (plan.price === "0") return;

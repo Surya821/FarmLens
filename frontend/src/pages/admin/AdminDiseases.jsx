@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 import { useNavigate } from 'react-router-dom';
 import { Database, Plus, Globe, Info, Image as ImageIcon, CheckCircle, AlertCircle, Activity, Heart, ShieldAlert, Sparkles, ShieldCheck } from 'lucide-react';
 import AdminNavbar from './AdminNavbar';
@@ -76,7 +78,7 @@ function AdminDiseases({ isDark, setIsDark }) {
     }
 
     try {
-      const res = await fetch('http://localhost:5001/api/diseases', {
+      const res = await fetch(`${API_BASE}/api/diseases`, {
         method: 'POST',
         body: submitFormData
       });
