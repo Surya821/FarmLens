@@ -3,8 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { Toaster, toast } from 'sonner';
 // Components
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -176,9 +175,10 @@ function AppContent({
 
       {!isAdminPath && <Footer isDark={isDark} language={language} />}
       
-      <ToastContainer
+      <Toaster 
         position="top-right"
-        autoClose={3000}
+        richColors
+        expand={false}
         theme={isDark ? "dark" : "light"}
       />
     </div>

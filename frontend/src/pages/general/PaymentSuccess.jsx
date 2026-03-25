@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, ArrowRight } from 'lucide-react';
 import { translations } from '../../data/translations';
 import { useAuth } from '../../context/AuthContext';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 function PaymentSuccess({ isDark, language }) {
   const navigate = useNavigate();

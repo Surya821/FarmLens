@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { breedData } from '../../data/breedData';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { translations } from '../../data/translations';
 import { AlertTriangle } from 'lucide-react';
 

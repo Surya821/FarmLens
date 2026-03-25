@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Key, Plus, Trash2, Copy, CheckCircle, Shield, Activity, BarChart3, AlertCircle, Info, ExternalLink, Book, ArrowRight, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { translations } from '../../data/translations';
 
 const DeveloperPage = ({ isDark, language }) => {

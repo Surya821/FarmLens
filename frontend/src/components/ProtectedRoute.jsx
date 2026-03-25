@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 function ProtectedRoute({ children, language }) {
   const { user } = useAuth();

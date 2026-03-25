@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { translations } from '../../data/translations';
 import { useAuth } from '../../context/AuthContext';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 function MembershipPage({ isDark, language }) {
   const navigate = useNavigate();
