@@ -65,9 +65,10 @@ function MembershipPage({ isDark, language }) {
         t.symptomAnalyses50,
         t.digitalRecords,
       ],
-      buttonText: t.currentPlan,
+      buttonText: user?.membership === 'Free' ? t.currentPlan : t.getStarted,
       popular: false,
-      color: "blue"
+      color: "blue",
+      isCurrent: user?.membership === 'Free' || (!user?.membership && true) // Default is free
     },
     {
       name: t.proPlan,
@@ -81,9 +82,10 @@ function MembershipPage({ isDark, language }) {
         t.digitalRecords,
         t.priorityEmailSupport
       ],
-      buttonText: t.getStarted,
+      buttonText: user?.membership === 'Pro' ? t.currentPlan : t.getStarted,
       popular: true,
-      color: "green"
+      color: "green",
+      isCurrent: user?.membership === 'Pro'
     },
     {
       name: t.enterprisePlan,
@@ -97,9 +99,10 @@ function MembershipPage({ isDark, language }) {
         t.apiAccess,
         t.personalizedTraining
       ],
-      buttonText: t.getStarted,
+      buttonText: user?.membership === 'Enterprise' ? t.currentPlan : t.getStarted,
       popular: false,
-      color: "purple"
+      color: "purple",
+      isCurrent: user?.membership === 'Enterprise'
     }
   ];
 
@@ -190,17 +193,17 @@ function MembershipPage({ isDark, language }) {
 
               <button 
                 onClick={() => handlePayment(plan)}
-                disabled={plan.price === "0"}
+                disabled={plan.isCurrent}
                 className={`w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all ${
                   plan.popular 
                   ? 'btn-primary-new' 
-                  : plan.price === "0" 
+                  : plan.isCurrent 
                     ? 'bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)] cursor-default'
                     : 'bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--accent)]'
-                }`}
+                } ${plan.isCurrent && plan.popular ? 'opacity-50 grayscale cursor-default' : ''}`}
               >
-                {plan.price === "0" ? t.currentPlan : plan.buttonText}
-                <ArrowRight size={18} />
+                {plan.buttonText}
+                {!plan.isCurrent && <ArrowRight size={18} />}
               </button>
             </div>
           ))}

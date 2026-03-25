@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { breedData } from '../../data/breedData';
 import { toast } from 'react-toastify';
 import { translations } from '../../data/translations';
+import { AlertTriangle } from 'lucide-react';
 
 function CattleInfoPage({ isDark, language }) {
   const [cattle, setCattle] = useState(null);
@@ -11,6 +12,8 @@ function CattleInfoPage({ isDark, language }) {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const navigate = useNavigate();
   const { username, cattleId } = useParams();
@@ -82,7 +85,7 @@ function CattleInfoPage({ isDark, language }) {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(t.deleteConfirm)) return;
+    setDeletingId(cattleId);
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`${API_BASE}/api/cattle/${cattleId}`, {
@@ -91,12 +94,14 @@ function CattleInfoPage({ isDark, language }) {
       });
       if (response.ok) {
         toast.success(t.deleteSuccess);
+        setConfirmDelete(null);
         navigate(`/${username}`);
       } else {
         const errorData = await response.json();
         toast.error(errorData.error || t.deleteFailed);
       }
     } catch (error) { toast.error(t.deleteFailed); }
+    finally { setDeletingId(null); }
   };
 
   const handlePredictBreed = () => {
@@ -126,6 +131,33 @@ function CattleInfoPage({ isDark, language }) {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 pb-20 ${isDark ? 'dark bg-[#0f1714]' : 'bg-[#f8faf7]'}`}>
+      {/* Delete Confirmation Modal */}
+      {confirmDelete && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-md px-4">
+              <div className={`w-full max-w-sm sm:max-w-md mx-auto p-6 sm:p-8 rounded-[2.5rem] border shadow-2xl ${isDark ? 'bg-[#111a14] border-white/10' : 'bg-white border-gray-200'}`}>
+                  <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                      <AlertTriangle size={32} />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-center mb-2 text-[var(--text)]">{language === 'en' ? 'Delete Cattle?' : 'मवेशी हटाएं?'}</h3>
+                  <p className="text-[var(--muted)] font-medium text-center text-sm sm:text-base mb-8">{t.deleteConfirm}</p>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                      <button
+                          onClick={() => setConfirmDelete(null)}
+                          className="w-full sm:flex-1 py-3 sm:py-4 bg-[var(--surface)] border border-[var(--border)] rounded-2xl font-black hover:scale-[1.02] transition-all text-[var(--text)]"
+                      >
+                          {language === 'en' ? 'Cancel' : 'रद्द करें'}
+                      </button>
+                      <button
+                          onClick={() => handleDelete()}
+                          disabled={deletingId === cattleId}
+                          className="w-full sm:flex-1 py-3 sm:py-4 bg-red-500 text-white rounded-2xl font-black shadow-lg shadow-red-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                      >
+                          {deletingId === cattleId ? (language === 'en' ? 'Deleting...' : 'हटाया जा रहा है...') : (language === 'en' ? 'Delete' : 'हटाएं')}
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
       <style>{`
         .info-card { animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         @keyframes slideUp {
@@ -164,7 +196,7 @@ function CattleInfoPage({ isDark, language }) {
                 <button onClick={() => setIsEditing(true)} className="w-12 h-12 bg-blue-500 text-white rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all flex items-center justify-center">
                   <i className="fa-solid fa-pen-nib"></i>
                 </button>
-                <button onClick={handleDelete} className="w-12 h-12 bg-red-500 text-white rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all flex items-center justify-center">
+                <button onClick={() => setConfirmDelete(cattleId)} className="w-12 h-12 bg-red-500 text-white rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all flex items-center justify-center">
                   <i className="fa-solid fa-trash-can"></i>
                 </button>
               </div>

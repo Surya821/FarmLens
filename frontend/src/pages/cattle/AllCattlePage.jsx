@@ -3,18 +3,21 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import { translations } from '../../data/translations';
+import { AlertTriangle } from 'lucide-react';
 
 function AllCattlePage({ isDark, language }) {
     const [cattleList, setCattleList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('name');
+    const [deletingId, setDeletingId] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState(null);
 
     const navigate = useNavigate();
     const { username } = useParams();
     const { user } = useAuth();
     const t = translations[language];
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
     useEffect(() => {
         if (user && user.username === username) {
@@ -42,7 +45,7 @@ function AllCattlePage({ isDark, language }) {
     };
 
     const deleteCattle = async (id) => {
-        if (!window.confirm(t.deleteConfirm)) return;
+        setDeletingId(id);
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(`${API_BASE}/api/cattle/${id}`, {
@@ -51,9 +54,11 @@ function AllCattlePage({ isDark, language }) {
             });
             if (response.ok) {
                 toast.success(t.deleteSuccess);
+                setConfirmDelete(null);
                 fetchCattle();
             }
         } catch (error) { toast.error(t.deleteFailed); }
+        finally { setDeletingId(null); }
     };
 
     const filteredAndSortedCattle = cattleList
@@ -99,6 +104,33 @@ function AllCattlePage({ isDark, language }) {
       `}</style>
 
             <div className="max-w-7xl mx-auto px-6 pt-8">
+                {/* Delete Confirmation Modal */}
+                {confirmDelete && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-md px-4">
+                        <div className={`w-full max-w-sm sm:max-w-md mx-auto p-6 sm:p-8 rounded-[2.5rem] border shadow-2xl ${isDark ? 'bg-[#111a14] border-white/10' : 'bg-white border-gray-200'}`}>
+                            <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                                <AlertTriangle size={32} />
+                            </div>
+                            <h3 className="text-xl sm:text-2xl font-black text-center mb-2 text-[var(--text)]">{language === 'en' ? 'Delete Cattle?' : 'मवेशी हटाएं?'}</h3>
+                            <p className="text-[var(--muted)] font-medium text-center text-sm sm:text-base mb-8">{t.deleteConfirm}</p>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <button
+                                    onClick={() => setConfirmDelete(null)}
+                                    className="w-full sm:flex-1 py-3 sm:py-4 bg-[var(--surface)] border border-[var(--border)] rounded-2xl font-black hover:scale-[1.02] transition-all text-[var(--text)]"
+                                >
+                                    {language === 'en' ? 'Cancel' : 'रद्द करें'}
+                                </button>
+                                <button
+                                    onClick={() => deleteCattle(confirmDelete)}
+                                    disabled={deletingId === confirmDelete}
+                                    className="w-full sm:flex-1 py-3 sm:py-4 bg-red-500 text-white rounded-2xl font-black shadow-lg shadow-red-500/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                                >
+                                    {deletingId === confirmDelete ? (language === 'en' ? 'Deleting...' : 'हटाया जा रहा है...') : (language === 'en' ? 'Delete' : 'हटाएं')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {/* Navigation / Header */}
                 <div className="flex items-center justify-between mb-8 animate-fade-in group">
                     <button
@@ -201,7 +233,7 @@ function AllCattlePage({ isDark, language }) {
 
                                     {/* Delete Button */}
                                     <button
-                                        onClick={(e) => { e.stopPropagation(); deleteCattle(cattle._id); }}
+                                        onClick={(e) => { e.stopPropagation(); setConfirmDelete(cattle._id); }}
                                         className="absolute top-6 right-6 w-10 h-10 bg-red-500 text-white rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center hover:scale-110 active:scale-90"
                                     >
                                         <i className="fa-solid fa-trash-can text-sm"></i>
