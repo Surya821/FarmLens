@@ -17,6 +17,7 @@ export function AuthProvider({ children }) {
     
     if (token && userData) {
       setUser(JSON.parse(userData));
+      refreshUser(); // Refresh with latest data on load
     }
     setLoading(false);
   }, []);
@@ -36,6 +37,26 @@ export function AuthProvider({ children }) {
   const updateUser = (userData) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
+  };
+
+  const refreshUser = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+      const response = await fetch(`${API_BASE}/api/user/profile`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        updateUser(data);
+      }
+    } catch (error) {
+      console.error("Error refreshing user:", error);
+    }
   };
 
   const incrementUsage = async (type) => {
@@ -86,6 +107,7 @@ export function AuthProvider({ children }) {
     login,
     logout,
     updateUser,
+    refreshUser,
     incrementUsage,
     getUsageLimit,
     showLimitModal,

@@ -11,8 +11,13 @@ function UserDashboard({ isDark, language }) {
 
   const navigate = useNavigate();
   const { username } = useParams();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const t = translations[language];
+
+  useEffect(() => {
+    refreshUser();
+    window.scrollTo(0, 0);
+  }, []);
 
   // Predefined Icons for Tasks
   const ICON_SET = [
