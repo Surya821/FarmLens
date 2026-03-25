@@ -20,6 +20,47 @@ router.get('/my-cattle', auth, async (req, res) => {
   }
 });
 
+// Get cattle statistics — must be ABOVE /:id to avoid "stats" being matched as an ID
+router.get('/stats', auth, async (req, res) => {
+  try {
+    console.log('Fetching stats for user:', req.userId);
+    
+    const totalCattle = await Cattle.countDocuments({ owner: req.userId });
+    
+    // Use new mongoose.Types.ObjectId syntax
+    const healthStats = await Cattle.aggregate([
+      { $match: { owner: new mongoose.Types.ObjectId(req.userId) } },
+      { $group: { _id: '$healthStatus', count: { $sum: 1 } } }
+    ]);
+
+    const genderStats = await Cattle.aggregate([
+      { $match: { owner: new mongoose.Types.ObjectId(req.userId) } },
+      { $group: { _id: '$gender', count: { $sum: 1 } } }
+    ]);
+
+    const healthyCount = await Cattle.countDocuments({ 
+      owner: req.userId, 
+      healthStatus: { $in: ['Excellent', 'Good'] } 
+    });
+
+    const pendingCount = await Cattle.countDocuments({ 
+      owner: req.userId, 
+      healthStatus: { $in: ['Fair', 'Poor'] } 
+    });
+
+    res.json({
+      totalCattle,
+      healthyCount,
+      pendingCount,
+      healthStats,
+      genderStats
+    });
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    res.status(500).json({ error: 'Failed to fetch statistics' });
+  }
+});
+
 // Get single cattle by ID
 router.get('/:id', auth, async (req, res) => {
   try {
@@ -171,45 +212,6 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-// Get cattle statistics
-router.get('/stats', auth, async (req, res) => {
-  try {
-    console.log('Fetching stats for user:', req.userId);
-    
-    const totalCattle = await Cattle.countDocuments({ owner: req.userId });
-    
-    // Use new mongoose.Types.ObjectId syntax
-    const healthStats = await Cattle.aggregate([
-      { $match: { owner: new mongoose.Types.ObjectId(req.userId) } },
-      { $group: { _id: '$healthStatus', count: { $sum: 1 } } }
-    ]);
-
-    const genderStats = await Cattle.aggregate([
-      { $match: { owner: new mongoose.Types.ObjectId(req.userId) } },
-      { $group: { _id: '$gender', count: { $sum: 1 } } }
-    ]);
-
-    const healthyCount = await Cattle.countDocuments({ 
-      owner: req.userId, 
-      healthStatus: { $in: ['Excellent', 'Good'] } 
-    });
-
-    const pendingCount = await Cattle.countDocuments({ 
-      owner: req.userId, 
-      healthStatus: { $in: ['Fair', 'Poor'] } 
-    });
-
-    res.json({
-      totalCattle,
-      healthyCount,
-      pendingCount,
-      healthStats,
-      genderStats
-    });
-  } catch (error) {
-    console.error('Error fetching stats:', error);
-    res.status(500).json({ error: 'Failed to fetch statistics' });
-  }
-});
+// (stats route moved above /:id — see top of file)
 
 export default router;
